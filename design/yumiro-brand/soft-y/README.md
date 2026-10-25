@@ -1,17 +1,17 @@
 # Yumiro — Soft Y
 
-Selected by the user for the ui-a worktree on October 25, 2026.
+The user selected the original Soft Y treatment for the ui-a worktree on October 25, 2026, replacing the later pastel-pink variation.
 
-`soft-y-pastel-pink-board.png` is the original selected concept board, copied without alteration. It contains the Soft Y symbol, Yumiro wordmark, app-icon presentation, monochrome variants, and motion storyboard. This is a raster design reference, not a standalone transparent logo or a production app-icon export.
+`soft-y-original-board.png` is the first Soft Y concept board, copied without alteration. It contains the black Soft Y symbol, original rounded Yumiro wordmark, periwinkle app-icon presentation, monochrome variants, and motion storyboard. This is a raster design reference, not a standalone transparent logo or a production app-icon export.
 
-Direction: premium K-pop influence, light pastel pink, soft asymmetric lowercase-y silhouette, and deep berry lettering.
+Direction: a soft asymmetric lowercase-y silhouette in black, a light periwinkle icon background, and the original rounded wordmark.
 
-Palette targets: pastel rose `#F1B7CE`, light blush `#F7DCE7`, near-white pink `#FFF9FC`, deep berry `#4A1D32`. Generated preview colors may vary slightly from these targets.
+App-icon palette targets: near-black `#111110` and light periwinkle `#B8C7FF`. Generated colors may vary slightly from these targets; the original board is the visual reference.
 
 Motion concept: the stem forms upward, the arms resolve into the complete symbol, the mark holds, and the fork opens into an expanding mask that reveals the interface. The static silhouette takes priority over animation.
 
-The artwork was generated with the built-in image_gen tool. No app code, asset catalog, or launch animation was changed when placing this reference in ui-a.
+The artwork was generated with the built-in image_gen tool. App source code and the launch animation are unchanged.
 
 ## App icon
 
-On October 25, 2026, the board's app-icon presentation became Yumiro A's home screen icon: `PhotoStudio/Assets.xcassets/AppIcon.appiconset/AppIcon.png`, 1024 × 1024, opaque. The berry symbol was traced from that tile, smoothed at 4× and redrawn full-bleed (iOS rounds the corners) in the palette targets: deep berry `#4A1D32` on light blush `#F7DCE7`, at the board's size and placement. There is only the light icon; dedicated dark and tinted versions are not drawn yet. App code and the launch animation are unchanged.
+`PhotoStudio/Assets.xcassets/AppIcon.appiconset/AppIcon.png` is Yumiro A's home screen icon: 1024 × 1024, opaque, full-bleed with square corners (iOS applies rounding). It was recolored from the existing Soft Y icon with the built-in image_gen tool to match the original near-black/periwinkle treatment, then resized for the asset catalog. The edit prompt is recorded in `app-icon-prompt.txt`. Only the light icon is supplied; dedicated dark and tinted versions are not drawn yet.
