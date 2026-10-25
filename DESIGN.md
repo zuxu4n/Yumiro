@@ -1,6 +1,6 @@
 # Yumiro design A handoff
 
-Updated 2026-10-25 (America/Toronto). This is the design A source of truth for approved colors, typography, spacing, component states, references, and implementation boundaries. The approved Nose Direction words design was pushed in **de9803a**. At the user's direction, all eight Face categories and 34 subtabs now reuse that design through shared controls, with Position retaining its canvas oval. Retouch remains a proposal. Browser/source checks are recorded below; native build and device validation remain unfinished. Read this document before continuing design A.
+Updated 2026-10-25 (America/Toronto). This is the design A source of truth for approved colors, typography, spacing, component states, references, and implementation boundaries. The approved Nose Direction words design was pushed in **de9803a**. All eight Face categories and 34 subtabs reuse that design through shared controls in **c6b33b9**, with Position retaining its canvas oval. The user selected **Stacked sliders** for Warp; that panel now reuses Face's value badges, reset controls and geometry. Retouch remains a proposal. Browser/source checks are recorded below; native build and device validation remain unfinished. Read this document before continuing design A.
 
 ## Worktree, branch, and authorization
 
@@ -22,7 +22,7 @@ The script fetches/pulls `ui-a` and installs a separate app named **Yumiro A**, 
 
 ## Implementation status
 
-The approved components below are implemented. The latest update applies Nose's shared control design throughout Face; the standalone Nose commit is `de9803a`. No Retouch redesign is implemented, and choosing an option in a mockup alone does not approve implementation. Every implemented component still needs native validation on the Mac/device.
+The approved components below are implemented. The latest update implements the user's written selection of Stacked sliders for Warp. No Retouch redesign is implemented, and choosing an option in a mockup alone does not approve implementation. Every implemented component still needs native validation on the Mac/device.
 
 | Area | Approved direction | UI commit | Status |
 |---|---|---|---|
@@ -36,7 +36,8 @@ The approved components below are implemented. The latest update applies Nose's 
 | Face → category and subcategory navigation | Stacked rails | `dd97cc7` | Implemented and pushed; native validation pending |
 | Face → Eyes controls | Wide slider with endpoint words and 4 pt reset-row gap | `709b132` | Implemented and pushed; native validation pending |
 | Face → Nose controls | Direction words with short endpoints | `de9803a` | Implemented and pushed; native validation pending |
-| Face → every category/subtab | Shared Nose typography, controls, short guidance and states; Position retains oval | This change | Implemented; browser/source checks passed; native validation pending |
+| Face → every category/subtab | Shared Nose typography, controls, short guidance and states; Position retains oval | `c6b33b9` | Implemented and pushed; native validation pending |
+| Warp panel | Stacked sliders | This change | Implemented; browser reference/source checks passed; native validation pending |
 | Retouch panel | Compact rows preferred | None | Mockup only; latest spacing revision awaits acceptance |
 
 The first four UI changes, Face navigation, Eyes controls and Nose controls are in [ContentView.swift](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/PhotoStudio/ContentView.swift). Crop, Rotate, and light/color styling are in [Adjustments.swift](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/PhotoStudio/Adjustments.swift), with explicit photo-only opt-ins (`photoCropStyle`, `photoRotateStyle`, `photoColorStyle`) at the `AdjustPanel` call in `ContentView.swift`. The shared video panel keeps its original presentation. Effect rendering, per-face storage, canvas gestures, camera, video editor, and home screen were not changed. Retouch still uses the original three `sliderRow` calls in app code.
@@ -108,7 +109,7 @@ Existing `Space` constants: `xs = 4`, `s = 8`, `m = 12`, `l = 16`, `xl = 24`, `x
 - Rotate and light/color Reset all targets are 64 × 44 pt, or 46 × 44 pt in their compact variant. Header item spacing is 8 pt; Rotate's transform-action spacing is 4 pt.
 - Face navigation: two 44 pt rows; each visible backing is 32 pt high with 14 pt corners, 12 pt horizontal label padding and 4 pt item gaps. Minimum category/option widths are 54/58 pt. Overflow fades are 16 pt wide and appear only at edges where content continues.
 - Eyes controls: a 44 pt slider/value/reset row, then a 4 pt gap before the minimum 28 pt endpoint/Reset all footer. Value badge is 44 × 32 pt with 10 pt corners; selected Reset is 44 × 44 pt with 14 pt corners. Footer reserves 104 pt for the badge/reset columns and two 8 pt gaps so endpoint words align with the slider.
-- Every Face category uses 8 pt top / 12 pt bottom padding, retaining 16 pt horizontal insets. Two 44 pt rails + 44 pt controls + 4 pt gap + 28 pt footer + 20 pt padding = the intended 184 pt minimum. Shared `FaceControlLayout` owns the row, value-badge and footer dimensions. Other tools retain their original padding. Native text or multi-face context may increase height.
+- Every Face category uses 8 pt top / 12 pt bottom padding, retaining 16 pt horizontal insets. Two 44 pt rails + 44 pt controls + 4 pt gap + 28 pt footer + 20 pt padding = the intended 184 pt minimum. Shared `FaceControlLayout` owns the row, value-badge and footer dimensions, now also reused by Warp. Warp uses the same insets; other tools retain their original padding. Native text or multi-face context may increase height.
 
 ### Selected, changed, and unavailable states
 
@@ -290,7 +291,7 @@ Browser checks covered light/dark, neutral/adjusted/unavailable states, narrow w
 
 ## All Face controls: approved Nose design throughout
 
-The user requested direct implementation across every Face category and subtab, reusing the completed Nose panel without new design directions or Mobbin research. All 33 slider subtabs now use `focusedFaceControls`, `FaceFeature.directions` and `FaceFeature.explanation`. Position retains its special canvas control through `positionFaceControls`. Both paths share `faceResetControl`, `faceControlFooter` and `FaceControlLayout` constants, plus the existing top-bar reset style and shared ValueSlider.
+The user requested direct implementation across every Face category and subtab, reusing the completed Nose panel without new design directions or Mobbin research. All 33 slider subtabs now use `focusedFaceControls`, `FaceFeature.directions` and `FaceFeature.explanation`. Position retains its special canvas control through `positionFaceControls`. Both paths share `adjustmentResetControl` (originally `faceResetControl`), `faceControlFooter` and `FaceControlLayout` constants, plus the existing top-bar reset style and shared ValueSlider. The Warp update extracts Face's unchanged badge into `adjustmentValueBadge` and reuses it; Face's appearance and interactions are preserved.
 
 - All eight categories and 34 subtabs retain their original order, selected-option memory, feature bindings and conditional edit dots. The category/option rails themselves are unchanged.
 - Every Face control uses the approved typography, signed or unsigned value badge, 44 pt control/reset row, 4 pt footer gap, minimum 28 pt helper/Reset-all footer and Face-only 8/12 pt top/bottom padding. Position keeps the original drag instruction and two-axis reset; it does not acquire a slider or an invented numeric value.
@@ -303,6 +304,21 @@ Verification: **408 browser state checks** cover every subtab in neutral, edited
 These are browser/source results, not native build or device results. Windows has no Swift/Xcode toolchain; every subtab still needs native light/dark, Dynamic Type, VoiceOver, real per-face and undo/redo checks on the Mac/device. Full inventory, exact endpoints, coverage and remaining device work: [face-controls-verification.md](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/design/face-controls-verification.md).
 
 Private verification preview: `design/mockups/yumiro-face-controls-local.html`, ignored because it reuses the supplied photo. Do not force-add or publish it. The preview is one implementation reference, with no alternative directions or approval step.
+
+## Warp: approved Stacked sliders
+
+After reviewing two editor-context proposals researched with Mobbin, the user explicitly selected **stacked** in writing. Only that layout is implemented. Focused slider remains an unselected alternative.
+
+- Brush Size and Strength are visible together. Each has a medium subheadline label in a minimum 20 pt area above a 44 pt slider/value/reset row. Groups and the guidance footer have 4 pt gaps. Insets are 8 pt top, 12 pt bottom and 16 pt horizontal, preserving the editor's 184 pt minimum panel. Native text and multi-face context may increase the height; the browser budget is not a native measurement.
+- Face and Warp share `adjustmentValueBadge`, `adjustmentResetControl`, `FaceControlLayout`, the existing top-bar reset button style and ValueSlider. Badges remain 44 × 32 pt with 10 pt corners; reset targets remain 44 × 44 pt with 14 pt corners. Defaults are neutral, edited parameters accented, and processing values retained in tertiary styling. Semantic colors support both appearances.
+- Brush Size retains `reshapeSize`, continuous 0.08...0.5 and default/reset 0.22, shown as **33**. Strength retains `reshapeStrength`, continuous 0.1...1 and default/reset 1, shown as **100**. The existing normalized unitless 0...100 display is preserved; Strength's displayed 0 still means internal 0.1. No new snapping, midpoint, units or step size was added.
+- Parameter drags retain `sliding` and `brushRing`; parameter resets assign only their original default. Neither creates an image undo step. Busy is the only new helper's unavailability check; no-face brush settings remain usable as before. Reset thresholds remain `abs(value - reset) < 0.001`.
+- The footer says “Drag a face to push.” / “Pan off-face · Pinch zoom.” No-face says “No face detected.” with the same navigation guidance. Processing says “Available after processing.” / “Your settings are kept.” Multi-face context and tap-to-select remain. Concise accessibility hints explain each parameter and its default.
+- Reset Face still calls `resetReshape()` with availability `selectedHasPushes && busy == nil`. It clears only the selected face's Warp pushes in one undo step, preserving Face adjustments, other faces and brush settings. The model, rendering, canvas gestures, face selection, push grouping, second-finger cancellation, zoom/pan and Compare are unchanged.
+
+The private editor-context reference covers default, adjusted, processing and no-face states in light/dark. Prior browser checks passed for all 24 layout/choice/state/appearance combinations and 16 narrow-width combinations; these review the reference, not native output. Source checks preserve the original canvas, model, shared slider and all other tool behavior; Face's extracted badge/reset helpers are equivalent to their original presentation. Native build, light/dark layout, Dynamic Type, VoiceOver and device behavior remain pending on the Mac.
+
+Research, exact ranges, source checks and native verification checklist: [warp-panel-proposals.md](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/design/warp-panel-proposals.md). Private preview: `design/mockups/yumiro-warp-panel-local.html`, ignored because it embeds the supplied photo. Never force-add or publish it.
 
 ## Retouch: preferred proposal, not implemented
 
@@ -349,6 +365,7 @@ Portable copies are saved in `design/mockups/`. These are interactive HTML fragm
 | [yumiro-eyes-controls-local.html](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/design/mockups/yumiro-eyes-controls-local.html) | Wide slider / Labeled slider | Reviewed Wide slider implemented with endpoint words and 4 pt reset gap; original dots retained; private and ignored |
 | [yumiro-nose-controls-local.html](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/design/mockups/yumiro-nose-controls-local.html) | Direction words / Inline guidance | Direction words selected with short endpoints and implemented; private and ignored |
 | [yumiro-face-controls-local.html](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/design/mockups/yumiro-face-controls-local.html) | Shared Nose controls throughout Face | Implementation verification reference for all 8 categories / 34 subtabs; private and ignored |
+| [yumiro-warp-panel-local.html](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/design/mockups/yumiro-warp-panel-local.html) | Stacked sliders / Focused slider | Stacked explicitly selected and implemented; Focused remains an alternative; private and ignored |
 
 Absolute portable-copy directory on this PC:
 
@@ -495,4 +512,5 @@ Still unfinished:
 10. Complete native contrast/material legibility checks and save actual device screenshots if requested. No native build, XCTest result, native screenshot, or device layout measurement is available in this handoff.
 11. Verify Nose on iOS: all five ranges and short endpoint pairs, Narrow's unsigned 0...100 display and leading neutral marker, centered signed values for the other four, reset availability, missing mesh/no-face/busy values and captions, per-face switching, selected Reset versus all-Face Reset all scope, drag/reset undo/redo, narrow widths, Dynamic Type, VoiceOver and both appearances. Confirm the shared focused helper preserves approved Eyes behavior and native canvas geometry.
 12. Verify all Face categories/subtabs natively using the inventory in `design/face-controls-verification.md`: both appearances, all control states, one-way and two-way ranges/zero positions, selected Reset and Reset all, per-face values and Face/Head aliases, undo/redo, availability/fallbacks, Dynamic Type, VoiceOver and native panel/canvas geometry. Position must retain oval dragging, second-finger cancellation, its original two-axis reset and all canvas gestures.
-13. Keep home, camera, video editor, other tool panels, effects, and image geometry outside unsolicited redesign work. Every Face category now reuses the approved Nose design, with Position's special interaction preserved. Continue within explicitly requested scope. Unselected layouts (Grouped shelf, Labeled chips, Action cluster, Labeled controls, Soft card, Pinned modes, Split controls, Value tabs, Face Category picker, Eyes Labeled slider, Nose Inline guidance, and Retouch Adjustment tabs) remain alternatives, not implementation tasks. The reverted dot-slot revision and removed Eyes helper prose are not pending implementation work.
+13. Verify Warp's Stacked sliders on iOS: both appearances; default/adjusted/processing/no-face states; exact brush ranges and normalized 33/100 defaults; parameter resets without image undo; Reset Face with undo/redo and preserved Face adjustments/other faces/brush settings; temporary brush ring; tap/drag face selection; off-face pan; pinch cancelling an in-progress push; Compare; narrow widths, multi-face context, Dynamic Type and VoiceOver. Measure native panel/canvas layout; no native size claim is established by the browser reference.
+14. Keep home, camera, video editor, other tool panels, effects, and image geometry outside unsolicited redesign work. Every Face category reuses the approved Nose design, with Position's special interaction preserved; Warp uses the selected Stacked sliders. Continue within explicitly requested scope. Unselected layouts (Grouped shelf, Labeled chips, Action cluster, Labeled controls, Soft card, Pinned modes, Split controls, Value tabs, Face Category picker, Eyes Labeled slider, Nose Inline guidance, Warp Focused slider, and Retouch Adjustment tabs) remain alternatives, not implementation tasks. The reverted dot-slot revision and removed Eyes helper prose are not pending implementation work.

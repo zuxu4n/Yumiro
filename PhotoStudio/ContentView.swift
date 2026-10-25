@@ -117,7 +117,7 @@ struct ContentView: View {
             canvas
             toolPanel
                 .padding(.horizontal, Space.l)
-                .padding(.top, model.tool == .face ? Space.s : Space.m)
+                .padding(.top, model.tool == .face || model.tool == .reshape ? Space.s : Space.m)
                 .padding(.bottom, Space.m)
                 .frame(maxWidth: .infinity, minHeight: 184, alignment: .center)
             Divider()
@@ -751,13 +751,7 @@ struct ContentView: View {
                 }
                 .onChange(of: model.adjustTool) { _, _ in model.renderPreview() }
             case .reshape:
-                sliderRow("Brush size", value: $model.reshapeSize, range: 0.08...0.5, reset: 0.22, undoable: false)
-                sliderRow("Strength", value: $model.reshapeStrength, range: 0.1...1, reset: 1, undoable: false)
-                HStack(alignment: .firstTextBaseline) {
-                    HintText(model.faceCount == 0 ? "No face found in this photo" : warpCaption)
-                    PanelTextButton(title: "Reset face") { model.resetReshape() }
-                        .disabled(!model.selectedHasPushes || model.busy != nil)
-                }
+                warpPanel
             }
         }
         .animation(.default, value: model.tool)
@@ -962,18 +956,10 @@ struct ContentView: View {
                 .accessibilityValue(valueLabel + (edited ? "" : ", neutral"))
                 .accessibilityHint(hint)
 
-                Text(valueLabel)
-                    .font(.subheadline.weight(.medium).monospacedDigit())
-                    .foregroundStyle(unavailable ? Color(.tertiaryLabel) : edited ? Color.accentColor : Color.secondary)
-                    .frame(width: FaceControlLayout.valueWidth, height: FaceControlLayout.valueHeight)
-                    .background {
-                        RoundedRectangle(cornerRadius: FaceControlLayout.valueRadius, style: .continuous)
-                            .fill(edited && !unavailable ? Color.accentColor.opacity(0.12) : Color(.secondarySystemBackground))
-                    }
-                    .accessibilityHidden(true)
+                adjustmentValueBadge(valueLabel, edited: edited, unavailable: unavailable)
 
-                faceResetControl(label: "Reset \(category.rawValue) \(f.title)",
-                                 disabled: abs(value) < 0.001 || unavailable) {
+                adjustmentResetControl(label: "Reset \(category.rawValue) \(f.title)",
+                                       disabled: abs(value) < 0.001 || unavailable) {
                     model.sliderEditing(true)
                     model[keyPath: f.value] = 0
                     model.sliderEditing(false)
@@ -995,8 +981,8 @@ struct ContentView: View {
                     .font(.subheadline)
                     .foregroundStyle(unavailable ? Color(.tertiaryLabel) : Color.primary)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                faceResetControl(label: "Reset Position", disabled: !model.positionMoved || unavailable,
-                                 hint: "Returns the oval to the center") {
+                adjustmentResetControl(label: "Reset Position", disabled: !model.positionMoved || unavailable,
+                                       hint: "Returns the oval to the center") {
                     model.resetPosition()
                 }
             }
@@ -1006,9 +992,22 @@ struct ContentView: View {
         }
     }
 
-    private func faceResetControl(label: String, disabled: Bool,
-                                  hint: String = "Returns only this adjustment to zero",
-                                  action: @escaping () -> Void) -> some View {
+    /// Face and Warp share value and reset styling so their control states stay consistent.
+    private func adjustmentValueBadge(_ label: String, edited: Bool, unavailable: Bool) -> some View {
+        Text(label)
+            .font(.subheadline.weight(.medium).monospacedDigit())
+            .foregroundStyle(unavailable ? Color(.tertiaryLabel) : edited ? Color.accentColor : Color.secondary)
+            .frame(width: FaceControlLayout.valueWidth, height: FaceControlLayout.valueHeight)
+            .background {
+                RoundedRectangle(cornerRadius: FaceControlLayout.valueRadius, style: .continuous)
+                    .fill(edited && !unavailable ? Color.accentColor.opacity(0.12) : Color(.secondarySystemBackground))
+            }
+            .accessibilityHidden(true)
+    }
+
+    private func adjustmentResetControl(label: String, disabled: Bool,
+                                        hint: String = "Returns only this adjustment to zero",
+                                        action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: "arrow.counterclockwise")
         }
@@ -1066,10 +1065,75 @@ struct ContentView: View {
         return hint.isEmpty ? which : "\(hint) · \(which)"
     }
 
-    private var warpCaption: String {
-        let how = "Drag on a face to push it. Drag off the face to move around."
-        guard model.faceCount > 1 else { return how }
-        return "Face \((model.selectedFace ?? 0) + 1) of \(model.faceCount) · tap another face to switch"
+    /// Stacked brush settings reuse Face's controls without adding image undo steps.
+    private var warpPanel: some View {
+        VStack(alignment: .leading, spacing: Space.xs) {
+            warpParameter("Brush Size", value: $model.reshapeSize, range: 0.08...0.5, reset: 0.22,
+                          hint: "Changes the area pushed by each drag. Smaller affects less of the face; larger affects more.")
+            warpParameter("Strength", value: $model.reshapeStrength, range: 0.1...1, reset: 1,
+                          hint: "Changes how far the face moves with your drag. Lower is gentler; higher is stronger.")
+
+            HStack(alignment: .top, spacing: Space.s) {
+                VStack(alignment: .leading, spacing: 0) {
+                    if model.busy != nil {
+                        HintText("Available after processing.\nYour settings are kept.")
+                    } else {
+                        HintText(model.faceCount == 0
+                                 ? "No face detected.\nPan off-face · Pinch zoom."
+                                 : "Drag a face to push.\nPan off-face · Pinch zoom.")
+                        if model.faceCount > 1 {
+                            Text("Face \((model.selectedFace ?? 0) + 1) of \(model.faceCount) · tap another face to switch")
+                                .font(.caption2).foregroundStyle(.secondary)
+                                .lineLimit(2).fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                PanelTextButton(title: "Reset Face") { model.resetReshape() }
+                    .disabled(!model.selectedHasPushes || model.busy != nil)
+                    .fixedSize()
+                    .accessibilityHint("Removes only this face's Warp pushes. Keeps Face adjustments and brush settings.")
+            }
+            .frame(minHeight: FaceControlLayout.footerHeight)
+        }
+    }
+
+    private func warpParameter(_ title: String, value: Binding<Float>, range: ClosedRange<Float>,
+                               reset: Float, hint: String) -> some View {
+        let edited = abs(value.wrappedValue - reset) > 0.001
+        let unavailable = model.busy != nil
+        let span = max(0.0001, range.upperBound - range.lowerBound)
+        let valueLabel = String(Int(((value.wrappedValue - range.lowerBound) / span * 100).rounded()))
+        let resetLabel = String(Int(((reset - range.lowerBound) / span * 100).rounded()))
+
+        return VStack(alignment: .leading, spacing: 0) {
+            Text(title)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(unavailable ? Color(.tertiaryLabel) : Color.primary)
+                .frame(minHeight: 20, alignment: .leading)
+                .accessibilityHidden(true)
+
+            HStack(spacing: Space.s) {
+                ValueSlider(value: value, range: range, reset: reset, editing: { editing in
+                    sliding = editing
+                    brushRing = editing
+                }, showsValue: false)
+                .disabled(unavailable)
+                .accessibilityLabel(title)
+                .accessibilityValue(valueLabel + (edited ? "" : ", default"))
+                .accessibilityHint(hint + " Default is \(resetLabel).")
+
+                adjustmentValueBadge(valueLabel, edited: edited, unavailable: unavailable)
+
+                adjustmentResetControl(label: "Reset \(title)",
+                                       disabled: abs(value.wrappedValue - reset) < 0.001 || unavailable,
+                                       hint: "Returns only \(title) to its default, \(resetLabel).") {
+                    value.wrappedValue = reset
+                }
+            }
+            .frame(height: FaceControlLayout.rowHeight)
+        }
     }
 
     private var healCaption: String {
@@ -1203,7 +1267,7 @@ extension Tool {
     }
 }
 
-/// Shared geometry for the approved Face controls. Reset targets use PhotoEditorTopBarButtonStyle's 44 pt size.
+/// Shared geometry for the approved Face and Warp controls. Reset targets use the top bar's 44 pt size.
 private enum FaceControlLayout {
     static let rowHeight: CGFloat = 44
     static let valueWidth: CGFloat = 44
