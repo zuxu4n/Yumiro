@@ -11,6 +11,7 @@ struct HomeView: View {
     var showWelcome: () -> Void
     @State private var showAbout = false
     @State private var welcomeAfterAbout = false
+    @Environment(\.replayLaunch) private var replayLaunch
 
     /// Nothing can be tapped while a photo opens.
     private var live: Bool { busy == nil }
@@ -24,12 +25,16 @@ struct HomeView: View {
                         Label("Edit a photo", systemImage: "photo")
                             .font(.body.weight(.semibold))
                             .foregroundStyle(.white)
+                            .launchLabel()
                             .frame(maxWidth: .infinity, minHeight: 52)
                     }
                     .buttonStyle(HomeTileStyle(primary: true))
+                    .launchTarget(.edit)
                     HStack(spacing: Space.s) {
-                        Button(action: openCamera) { actionLabel("Camera", icon: "camera") }
-                        Button(action: openVideo) { actionLabel("Video", icon: "play.rectangle") }
+                        Button(action: openCamera) { actionLabel("Camera", icon: "camera", order: 1) }
+                            .launchTarget(.camera)
+                        Button(action: openVideo) { actionLabel("Video", icon: "play.rectangle", order: 2) }
+                            .launchTarget(.video)
                             .accessibilityLabel("Edit a video")
                             .accessibilityInputLabels(["Video", "Edit a video"])
                     }
@@ -39,10 +44,12 @@ struct HomeView: View {
                         .font(.title3.weight(.semibold))
                         .accessibilityAddTraits(.isHeader)
                         .padding(.top, 20)
+                        .launchRise(0)
                     ForEach(Array(Tool.groups.enumerated()), id: \.offset) { i, group in
-                        toolGroup(Tool.groupTitles[i], group)
+                        toolGroup(Tool.groupTitles[i], group, rise: riseOrder(group: i))
                     }
                     privacyNote.padding(.top, Space.m)
+                        .launchRise(riseOrder(group: Tool.groups.count))
                 }
                 .padding(.horizontal, Space.l)
                 .padding(.top, Space.s)
@@ -68,14 +75,20 @@ struct HomeView: View {
             Text("Yumiro")
                 .font(.largeTitle.bold())
                 .accessibilityAddTraits(.isHeader)
+                .launchWipe()
+                #if DEBUG
+                .onLongPressGesture { replayLaunch?() }   // replays the launch animation while working on it
+                #endif
             Spacer(minLength: 0)
             Button { showAbout = true } label: {
                 Image(systemName: "info.circle")
                     .font(.system(size: 20))
                     .foregroundStyle(live ? Color.secondary : Color(.tertiaryLabel))
+                    .launchLabel(3)
                     .frame(width: 44, height: 44)
             }
             .buttonStyle(HomeTileStyle())
+            .launchTarget(.about)
             .accessibilityLabel("About Yumiro")
         }
         .padding(.horizontal, Space.l)
@@ -83,25 +96,34 @@ struct HomeView: View {
     }
 
     /// Camera or Video: the accent icon beside its name.
-    private func actionLabel(_ title: String, icon: String) -> some View {
+    private func actionLabel(_ title: String, icon: String, order: Int) -> some View {
         Label {
             Text(title).foregroundStyle(live ? Color.primary : Color(.tertiaryLabel))
         } icon: {
             Image(systemName: icon).font(.title3).foregroundStyle(live ? Color.accentColor : Color(.tertiaryLabel))
         }
         .font(.subheadline.weight(.semibold))
+        .launchLabel(order)
         .padding(.horizontal, Space.m)
         .frame(maxWidth: .infinity, minHeight: 52, maxHeight: .infinity)
     }
 
-    /// One of the tool bar's groups: its name, then its tools two to a row.
-    private func toolGroup(_ title: String, _ tools: [Tool]) -> some View {
+    /// Where a group comes in the launch animation's rise: after "Start with a tool" and every earlier group's title
+    /// and rows. `group` one past the last gives the privacy line's place.
+    private func riseOrder(group: Int) -> Int {
+        1 + Tool.groups.prefix(group).reduce(0) { $0 + 1 + ($1.count + 1) / 2 }
+    }
+
+    /// One of the tool bar's groups: its name, then its tools two to a row. In the launch animation the name rises at
+    /// `rise` and each row one step after the last.
+    private func toolGroup(_ title: String, _ tools: [Tool], rise: Int) -> some View {
         VStack(alignment: .leading, spacing: Space.xs) {
             Text(title)
                 .font(.caption2.weight(.semibold))
                 .foregroundStyle(live ? Color.toolMuted : Color(.tertiaryLabel))
                 .padding(.leading, Space.s)
                 .accessibilityAddTraits(.isHeader)
+                .launchRise(rise)
             VStack(spacing: Space.s) {
                 ForEach(Array(stride(from: 0, to: tools.count, by: 2)), id: \.self) { j in
                     HStack(spacing: Space.s) {
@@ -109,6 +131,7 @@ struct HomeView: View {
                         if j + 1 == tools.count { Color.clear.frame(maxWidth: .infinity) }
                     }
                     .fixedSize(horizontal: false, vertical: true)   // both cards in a row as tall as the taller one
+                    .launchRise(rise + 1 + j / 2)
                 }
             }
         }

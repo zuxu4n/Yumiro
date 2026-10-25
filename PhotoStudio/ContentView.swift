@@ -11,6 +11,7 @@ struct ContentView: View {
     @State private var pickerItem: PhotosPickerItem?
     @State private var showCamera = false
     @State private var showWelcome = false
+    @State private var launching = LaunchIntro.wanted   // the launch animation is playing over the home screen
     @State private var movie: PickedMovie?
     @State private var comparing = false
     @State private var sliding = false     // a slider is being dragged
@@ -48,6 +49,7 @@ struct ContentView: View {
                          openVideo: { pickerFilter = .videos; picking = true },
                          openCamera: { showCamera = true },
                          showWelcome: { showWelcome = true })
+                    .launchIntro(isPlaying: $launching)
                     .transition(.opacity)
             }
         }
@@ -81,7 +83,10 @@ struct ContentView: View {
         } message: {
             Text(model.error ?? "")
         }
-        .task {
+        // The warm-up keeps every core busy, so it waits for the launch animation, and so does the first launch's
+        // welcome, which would cover it.
+        .task(id: launching) {
+            guard !launching else { return }
             if !welcomeSeen { showWelcome = true }
             await model.warmUp()
             if EnhanceBench.requested { await model.runEnhanceBench() }
