@@ -117,7 +117,7 @@ struct ContentView: View {
             canvas
             toolPanel
                 .padding(.horizontal, Space.l)
-                .padding(.top, model.tool == .face && (area == .eyes || area == .nose) ? Space.s : Space.m)
+                .padding(.top, model.tool == .face ? Space.s : Space.m)
                 .padding(.bottom, Space.m)
                 .frame(maxWidth: .infinity, minHeight: 184, alignment: .center)
             Divider()
@@ -727,36 +727,15 @@ struct ContentView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     areaTabs
                     subtabChips
-                    if area == .eyes, let f = feature {
-                        focusedFaceControls(f, category: .eyes)
-                    } else if area == .nose, let f = feature {
-                        focusedFaceControls(f, category: .nose)
+                    if feature == .position {
+                        positionFaceControls
+                    } else if let f = feature {
+                        focusedFaceControls(f, category: area)
                     } else {
-                        Group {
-                            if feature == .position {
-                                HStack {
-                                    Text("Drag the oval around the head").font(.subheadline)
-                                    Spacer()
-                                    ResetButton(label: "Reset Position") { model.resetPosition() }
-                                        .disabled(!model.positionMoved || model.busy != nil)
-                                }
-                                .frame(height: 44)
-                                .disabled(!model.selectedHasMesh)
-                            } else if let f = feature {
-                                sliderRow(f.title, value: Binding(get: { model[keyPath: f.value] }, set: { model[keyPath: f.value] = $0 }),
-                                          range: f.range)
-                                    .disabled(f.needsMesh && !model.selectedHasMesh)
-                            } else {
-                                Color.clear.frame(height: 44)
-                            }
+                        VStack(alignment: .leading, spacing: Space.xs) {
+                            Color.clear.frame(height: FaceControlLayout.rowHeight)
+                            faceControlFooter(unavailable: true)
                         }
-                        .frame(height: 44)
-                        HStack(alignment: .firstTextBaseline) {
-                            HintText(faceCaption)
-                            PanelTextButton(title: "Reset all") { model.resetFaceSliders() }
-                                .disabled(!model.faceSlidersMoved || model.busy != nil)
-                        }
-                        .frame(minHeight: 28)
                     }
                 }
             case .adjust:
@@ -953,20 +932,19 @@ struct ContentView: View {
         }
     }
 
-    /// Eyes and Nose share the approved wide slider; the selected rail option supplies the visible label.
+    /// Every Face slider uses the approved Nose layout; the selected rail option supplies the visible label.
     private func focusedFaceControls(_ f: FaceFeature, category: FaceArea) -> some View {
         let value = model[keyPath: f.value]
         let edited = abs(value) > 0.001
         let unavailable = model.busy != nil || (f.needsMesh && !model.selectedHasMesh)
-        let directions = category == .nose ? noseDirections(f) : eyesDirections(f)
+        let directions = f.directions
         let oneWay = f.range.lowerBound == 0
         let valueLabel = oneWay ? String(Int((value * 100).rounded())) : ValueSlider.label(value)
         let directionHint = oneWay
             ? "Left: \(directions.negative). Zero is neutral. Right: \(directions.positive)."
             : "Negative: \(directions.negative). Zero is neutral. Positive: \(directions.positive)."
-        let hint = category == .nose ? noseExplanation(f) + " " + directionHint : directionHint
+        let hint = f.explanation + " " + directionHint
         let binding = Binding(get: { model[keyPath: f.value] }, set: { model[keyPath: f.value] = $0 })
-        let accessoryWidth: CGFloat = 44 + 44 + 2 * Space.s
 
         return VStack(alignment: .leading, spacing: Space.xs) {
             HStack(spacing: Space.s) {
@@ -987,35 +965,70 @@ struct ContentView: View {
                 Text(valueLabel)
                     .font(.subheadline.weight(.medium).monospacedDigit())
                     .foregroundStyle(unavailable ? Color(.tertiaryLabel) : edited ? Color.accentColor : Color.secondary)
-                    .frame(width: 44, height: 32)
+                    .frame(width: FaceControlLayout.valueWidth, height: FaceControlLayout.valueHeight)
                     .background {
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        RoundedRectangle(cornerRadius: FaceControlLayout.valueRadius, style: .continuous)
                             .fill(edited && !unavailable ? Color.accentColor.opacity(0.12) : Color(.secondarySystemBackground))
                     }
                     .accessibilityHidden(true)
 
-                Button {
+                faceResetControl(label: "Reset \(category.rawValue) \(f.title)",
+                                 disabled: abs(value) < 0.001 || unavailable) {
                     model.sliderEditing(true)
                     model[keyPath: f.value] = 0
                     model.sliderEditing(false)
-                } label: {
-                    Image(systemName: "arrow.counterclockwise")
                 }
-                .buttonStyle(PhotoEditorTopBarButtonStyle())
-                .disabled(abs(value) < 0.001 || unavailable)
-                .accessibilityLabel("Reset \(f.title)")
-                .accessibilityHint("Returns only this adjustment to zero")
             }
-            .frame(height: 44)
+            .frame(height: FaceControlLayout.rowHeight)
 
-            HStack(alignment: .top, spacing: 0) {
-                Group {
-                    if model.busy != nil {
-                        HintText("Available when processing finishes")
-                    } else if unavailable || model.faceCount == 0 {
-                        HintText(faceCaption)
-                    } else {
-                        VStack(alignment: .leading, spacing: 0) {
+            faceControlFooter(directions: directions, unavailable: unavailable)
+        }
+    }
+
+    /// Position keeps its canvas oval and existing two-axis reset, with the same row/footer geometry as sliders.
+    private var positionFaceControls: some View {
+        let unavailable = model.busy != nil || !model.selectedHasMesh
+
+        return VStack(alignment: .leading, spacing: Space.xs) {
+            HStack(spacing: Space.s) {
+                Text("Drag the oval around the head")
+                    .font(.subheadline)
+                    .foregroundStyle(unavailable ? Color(.tertiaryLabel) : Color.primary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                faceResetControl(label: "Reset Position", disabled: !model.positionMoved || unavailable,
+                                 hint: "Returns the oval to the center") {
+                    model.resetPosition()
+                }
+            }
+            .frame(height: FaceControlLayout.rowHeight)
+
+            faceControlFooter(unavailable: unavailable)
+        }
+    }
+
+    private func faceResetControl(label: String, disabled: Bool,
+                                  hint: String = "Returns only this adjustment to zero",
+                                  action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: "arrow.counterclockwise")
+        }
+        .buttonStyle(PhotoEditorTopBarButtonStyle())
+        .disabled(disabled)
+        .accessibilityLabel(label)
+        .accessibilityHint(hint)
+    }
+
+    private func faceControlFooter(directions: (negative: String, positive: String)? = nil,
+                                   unavailable: Bool) -> some View {
+        HStack(alignment: .top, spacing: 0) {
+            Group {
+                if model.busy != nil {
+                    HintText("Available when processing finishes")
+                } else if unavailable || model.faceCount == 0 {
+                    HintText(faceCaption)
+                } else {
+                    VStack(alignment: .leading, spacing: 0) {
+                        if let directions {
                             HStack(alignment: .top, spacing: Space.xs) {
                                 Text(directions.negative)
                                 Spacer(minLength: Space.xs)
@@ -1023,54 +1036,24 @@ struct ContentView: View {
                             }
                             .font(.footnote).foregroundStyle(.secondary)
                             .accessibilityHidden(true)
-                            if model.faceCount > 1 {
-                                Text("Face \((model.selectedFace ?? 0) + 1) of \(model.faceCount) · tap another face to switch")
-                                    .font(.caption2).foregroundStyle(.secondary)
-                                    .lineLimit(2).fixedSize(horizontal: false, vertical: true)
-                            }
+                        } else {
+                            HintText(feature?.hint ?? faceCaption)
+                        }
+                        if model.faceCount > 1 {
+                            Text("Face \((model.selectedFace ?? 0) + 1) of \(model.faceCount) · tap another face to switch")
+                                .font(.caption2).foregroundStyle(.secondary)
+                                .lineLimit(2).fixedSize(horizontal: false, vertical: true)
                         }
                     }
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-                PanelTextButton(title: "Reset all") { model.resetFaceSliders() }
-                    .disabled(!model.faceSlidersMoved || model.busy != nil)
-                    .frame(width: accessoryWidth, alignment: .trailing)
             }
-            .frame(minHeight: 28)
-        }
-    }
+            .frame(maxWidth: .infinity, alignment: .leading)
 
-    private func eyesDirections(_ f: FaceFeature) -> (negative: String, positive: String) {
-        switch f {
-        case .eyes: return ("Smaller", "Larger")
-        case .eyeWidth: return ("Shorter", "Longer")
-        case .eyeHeight: return ("Less open", "More open")
-        case .eyeTilt: return ("Down", "Up")
-        case .eyeDistance: return ("Closer", "Farther")
-        default: return ("", "")
+            PanelTextButton(title: "Reset all") { model.resetFaceSliders() }
+                .disabled(!model.faceSlidersMoved || model.busy != nil)
+                .frame(width: FaceControlLayout.accessoryWidth, alignment: .trailing)
         }
-    }
-
-    private func noseDirections(_ f: FaceFeature) -> (negative: String, positive: String) {
-        switch f {
-        case .noseSize, .noseTip: return ("Smaller", "Larger")
-        case .noseWidth: return ("Narrower", "Wider")
-        case .nose: return ("Original", "Slimmer")
-        case .noseLift: return ("Down", "Up")
-        default: return ("", "")
-        }
-    }
-
-    private func noseExplanation(_ f: FaceFeature) -> String {
-        switch f {
-        case .noseSize: return "Scales the whole nose."
-        case .noseWidth: return "Adjusts nostrils and wings."
-        case .nose: return "Slims the nose bridge."
-        case .noseLift: return "Moves the tip down or up."
-        case .noseTip: return "Changes the nose tip size."
-        default: return ""
-        }
+        .frame(minHeight: FaceControlLayout.footerHeight)
     }
 
     private var faceCaption: String {
@@ -1218,6 +1201,16 @@ extension Tool {
         case .adjust: return "Crop and light"
         }
     }
+}
+
+/// Shared geometry for the approved Face controls. Reset targets use PhotoEditorTopBarButtonStyle's 44 pt size.
+private enum FaceControlLayout {
+    static let rowHeight: CGFloat = 44
+    static let valueWidth: CGFloat = 44
+    static let valueHeight: CGFloat = 32
+    static let valueRadius: CGFloat = 10
+    static let footerHeight: CGFloat = 28
+    static let accessoryWidth: CGFloat = valueWidth + rowHeight + 2 * Space.s
 }
 
 /// The Face tab's main tabs and their subtabs. Subtabs without a FaceFeature are buttons only for now.
@@ -1402,6 +1395,68 @@ private enum FaceFeature: String, CaseIterable, Identifiable {
     }
 
     var needsMesh: Bool { ![.slim, .eyes].contains(self) }   // these two fall back to Apple Vision's landmarks
+
+    /// Short endpoint words. One-way adjustments describe the original photo at their leading edge.
+    var directions: (negative: String, positive: String) {
+        switch self {
+        case .size, .eyes, .noseSize, .noseTip, .jawSize, .lipSize: return ("Smaller", "Larger")
+        case .width, .noseWidth, .jaw, .lipWidth: return ("Narrower", "Wider")
+        case .headHeight: return ("Shorter", "Taller")
+        case .perspective: return ("Farther", "Closer")
+        case .slim: return ("Slimmer", "Fuller")
+        case .eyeWidth, .chin, .jawLength: return ("Shorter", "Longer")
+        case .eyeHeight: return ("Less open", "More open")
+        case .eyeTilt, .noseLift, .browLift, .browTilt: return ("Down", "Up")
+        case .eyeDistance: return ("Closer", "Farther")
+        case .nose: return ("Original", "Slimmer")
+        case .define: return ("Original", "Defined")
+        case .lips: return ("Thinner", "Fuller")
+        case .browThick: return ("Thinner", "Thicker")
+        case .browShape: return ("Flatter", "Arched")
+        case .browRaise, .forehead: return ("Lower", "Higher")
+        case .smile: return ("Original", "More smile")
+        case .smirk: return ("Left corner", "Right corner")
+        case .position: return ("", "")   // Position keeps its canvas control, not a slider.
+        }
+    }
+
+    /// Anatomical guidance is announced with the slider; the normal visible footer stays as compact endpoint words.
+    var explanation: String {
+        switch self {
+        case .size: return "Scales the whole head, including hair."
+        case .width: return "Changes head width, including temples and hair."
+        case .headHeight: return "Changes head height from chin to hair."
+        case .position: return "The head turns towards the oval."
+        case .perspective: return "Changes the apparent camera distance to the face."
+        case .slim: return "Changes the fullness of the jawline."
+        case .eyes: return "Changes overall eye size."
+        case .eyeWidth: return "Changes eye length, corner to corner."
+        case .eyeHeight: return "Changes the eye opening."
+        case .eyeTilt: return "Tilts the outer eye corners."
+        case .eyeDistance: return "Changes the spacing between the eyes."
+        case .nose: return "Slims the nose bridge."
+        case .noseSize: return "Scales the whole nose."
+        case .noseWidth: return "Adjusts nostrils and wings."
+        case .noseLift: return "Moves the tip down or up."
+        case .noseTip: return "Changes the nose tip size."
+        case .jaw: return "Changes the width of the jaw corners."
+        case .chin: return "Changes chin length."
+        case .jawSize: return "Changes overall jaw size."
+        case .define: return "Tightens beneath the jaw and sharpens its corners."
+        case .jawLength: return "Changes the length of the lower face."
+        case .lips: return "Changes lip fullness."
+        case .lipSize: return "Changes overall mouth size."
+        case .lipWidth: return "Changes mouth width."
+        case .browThick: return "Changes eyebrow thickness."
+        case .browLift: return "Moves the outer brow ends; the inner ends stay."
+        case .browShape: return "Changes the eyebrow arch."
+        case .browTilt: return "Turns each brow about its middle."
+        case .browRaise: return "Moves the whole eyebrows lower or higher."
+        case .smile: return "Raises both mouth corners."
+        case .smirk: return "Raises the corner on the photo's left or right."
+        case .forehead: return "Moves the hairline to change forehead height."
+        }
+    }
 }
 
 /// Face › Position: the oval to drag, on the selected face, drawn over the aspect-fit photo. Its long radius is at least
