@@ -117,7 +117,7 @@ struct ContentView: View {
             canvas
             toolPanel
                 .padding(.horizontal, Space.l)
-                .padding(.top, model.tool == .face && area == .eyes ? Space.s : Space.m)
+                .padding(.top, model.tool == .face && (area == .eyes || area == .nose) ? Space.s : Space.m)
                 .padding(.bottom, Space.m)
                 .frame(maxWidth: .infinity, minHeight: 184, alignment: .center)
             Divider()
@@ -728,7 +728,9 @@ struct ContentView: View {
                     areaTabs
                     subtabChips
                     if area == .eyes, let f = feature {
-                        eyesControls(f)
+                        focusedFaceControls(f, category: .eyes)
+                    } else if area == .nose, let f = feature {
+                        focusedFaceControls(f, category: .nose)
                     } else {
                         Group {
                             if feature == .position {
@@ -951,12 +953,18 @@ struct ContentView: View {
         }
     }
 
-    /// Eyes reuse the focused slider styling; the selected rail option supplies the visible label.
-    private func eyesControls(_ f: FaceFeature) -> some View {
+    /// Eyes and Nose share the approved wide slider; the selected rail option supplies the visible label.
+    private func focusedFaceControls(_ f: FaceFeature, category: FaceArea) -> some View {
         let value = model[keyPath: f.value]
         let edited = abs(value) > 0.001
         let unavailable = model.busy != nil || (f.needsMesh && !model.selectedHasMesh)
-        let directions = eyesDirections(f)
+        let directions = category == .nose ? noseDirections(f) : eyesDirections(f)
+        let oneWay = f.range.lowerBound == 0
+        let valueLabel = oneWay ? String(Int((value * 100).rounded())) : ValueSlider.label(value)
+        let directionHint = oneWay
+            ? "Left: \(directions.negative). Zero is neutral. Right: \(directions.positive)."
+            : "Negative: \(directions.negative). Zero is neutral. Positive: \(directions.positive)."
+        let hint = category == .nose ? noseExplanation(f) + " " + directionHint : directionHint
         let binding = Binding(get: { model[keyPath: f.value] }, set: { model[keyPath: f.value] = $0 })
         let accessoryWidth: CGFloat = 44 + 44 + 2 * Space.s
 
@@ -966,17 +974,17 @@ struct ContentView: View {
                     sliding = editing
                     model.sliderEditing(editing)
                 }, showsValue: false)
-                .overlay(alignment: .bottom) {
+                .overlay(alignment: oneWay ? .bottomLeading : .bottom) {
                     Capsule().fill(unavailable ? Color(.tertiaryLabel) : Color.secondary)
                         .frame(width: 1.5, height: 9).padding(.bottom, 1)
                         .allowsHitTesting(false).accessibilityHidden(true)
                 }
                 .disabled(unavailable)
-                .accessibilityLabel("Eyes, \(f.title)")
-                .accessibilityValue(ValueSlider.label(value) + (edited ? "" : ", neutral"))
-                .accessibilityHint("Negative: \(directions.negative). Zero is neutral. Positive: \(directions.positive).")
+                .accessibilityLabel("\(category.rawValue), \(f.title)")
+                .accessibilityValue(valueLabel + (edited ? "" : ", neutral"))
+                .accessibilityHint(hint)
 
-                Text(ValueSlider.label(value))
+                Text(valueLabel)
                     .font(.subheadline.weight(.medium).monospacedDigit())
                     .foregroundStyle(unavailable ? Color(.tertiaryLabel) : edited ? Color.accentColor : Color.secondary)
                     .frame(width: 44, height: 32)
@@ -1041,6 +1049,27 @@ struct ContentView: View {
         case .eyeTilt: return ("Down", "Up")
         case .eyeDistance: return ("Closer", "Farther")
         default: return ("", "")
+        }
+    }
+
+    private func noseDirections(_ f: FaceFeature) -> (negative: String, positive: String) {
+        switch f {
+        case .noseSize, .noseTip: return ("Smaller", "Larger")
+        case .noseWidth: return ("Narrower", "Wider")
+        case .nose: return ("Original", "Slimmer")
+        case .noseLift: return ("Down", "Up")
+        default: return ("", "")
+        }
+    }
+
+    private func noseExplanation(_ f: FaceFeature) -> String {
+        switch f {
+        case .noseSize: return "Scales the whole nose."
+        case .noseWidth: return "Adjusts nostrils and wings."
+        case .nose: return "Slims the nose bridge."
+        case .noseLift: return "Moves the tip down or up."
+        case .noseTip: return "Changes the nose tip size."
+        default: return ""
         }
     }
 

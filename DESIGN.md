@@ -1,6 +1,6 @@
 # Yumiro design A handoff
 
-Updated 2026-10-24 (America/Toronto). This is the design A source of truth for approved colors, typography, spacing, component states, references, and implementation boundaries. All nine approved UI changes are implemented and pushed through **709b132f5323b31108ee09eff7b896b88d342823**, including Stacked rails navigation and the Eyes Wide slider with endpoint words and corrected reset spacing. Retouch remains a proposal. Browser and source checks are recorded below; native build and device validation remain unfinished. Read this document before continuing design A.
+Updated 2026-10-25 (America/Toronto). This is the design A source of truth for approved colors, typography, spacing, component states, references, and implementation boundaries. The nine earlier approved UI changes were pushed through **709b132f5323b31108ee09eff7b896b88d342823**. This update implements the tenth approved change, Nose Direction words with short endpoints, after the user's explicit commit/push request. Retouch remains a proposal. Browser and source checks are recorded below; native build and device validation remain unfinished. Read this document before continuing design A.
 
 ## Worktree, branch, and authorization
 
@@ -21,7 +21,7 @@ The script fetches/pulls `ui-a` and installs a separate app named **Yumiro A**, 
 
 ## Implementation status
 
-All nine approved components below are implemented and pushed. The latest UI commit is `709b132`; local `ui-a` and the local `origin/ui-a` tracking ref matched that commit before this documentation update. No Retouch redesign is implemented, and choosing an option in a mockup alone does not approve implementation. Every implemented component still needs native validation on the Mac/device.
+All ten approved components below are implemented. The latest addition is Nose Direction words in this change; the previous Eyes UI commit is `709b132`. No Retouch redesign is implemented, and choosing an option in a mockup alone does not approve implementation. Every implemented component still needs native validation on the Mac/device.
 
 | Area | Approved direction | UI commit | Status |
 |---|---|---|---|
@@ -34,9 +34,10 @@ All nine approved components below are implemented and pushed. The latest UI com
 | Photo Adjust → Brightness, Contrast, Saturation, Warmth | Focused slider hybrid | `5efeeba` | Implemented and pushed |
 | Face → category and subcategory navigation | Stacked rails | `dd97cc7` | Implemented and pushed; native validation pending |
 | Face → Eyes controls | Wide slider with endpoint words and 4 pt reset-row gap | `709b132` | Implemented and pushed; native validation pending |
+| Face → Nose controls | Direction words with short endpoints | This change | Implemented; native validation pending |
 | Retouch panel | Compact rows preferred | None | Mockup only; latest spacing revision awaits acceptance |
 
-The first four UI changes, Face navigation, and Eyes controls are in [ContentView.swift](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/PhotoStudio/ContentView.swift). Crop, Rotate, and light/color styling are in [Adjustments.swift](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/PhotoStudio/Adjustments.swift), with explicit photo-only opt-ins (`photoCropStyle`, `photoRotateStyle`, `photoColorStyle`) at the `AdjustPanel` call in `ContentView.swift`. The shared video panel keeps its original presentation. Effect rendering, per-face storage, canvas gestures, camera, video editor, and home screen were not changed. Retouch still uses the original three `sliderRow` calls in app code. This handoff update changes documentation only.
+The first four UI changes, Face navigation, Eyes controls and Nose controls are in [ContentView.swift](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/PhotoStudio/ContentView.swift). Crop, Rotate, and light/color styling are in [Adjustments.swift](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/PhotoStudio/Adjustments.swift), with explicit photo-only opt-ins (`photoCropStyle`, `photoRotateStyle`, `photoColorStyle`) at the `AdjustPanel` call in `ContentView.swift`. The shared video panel keeps its original presentation. Effect rendering, per-face storage, canvas gestures, camera, video editor, and home screen were not changed. Retouch still uses the original three `sliderRow` calls in app code.
 
 ## Visual foundations
 
@@ -105,7 +106,7 @@ Existing `Space` constants: `xs = 4`, `s = 8`, `m = 12`, `l = 16`, `xl = 24`, `x
 - Rotate and light/color Reset all targets are 64 × 44 pt, or 46 × 44 pt in their compact variant. Header item spacing is 8 pt; Rotate's transform-action spacing is 4 pt.
 - Face navigation: two 44 pt rows; each visible backing is 32 pt high with 14 pt corners, 12 pt horizontal label padding and 4 pt item gaps. Minimum category/option widths are 54/58 pt. Overflow fades are 16 pt wide and appear only at edges where content continues.
 - Eyes controls: a 44 pt slider/value/reset row, then a 4 pt gap before the minimum 28 pt endpoint/Reset all footer. Value badge is 44 × 32 pt with 10 pt corners; selected Reset is 44 × 44 pt with 14 pt corners. Footer reserves 104 pt for the badge/reset columns and two 8 pt gaps so endpoint words align with the slider.
-- Eyes-only panel padding is 8 pt top / 12 pt bottom, retaining 16 pt horizontal insets. Two 44 pt rails + 44 pt controls + 4 pt gap + 28 pt footer + 20 pt padding = the intended 184 pt minimum. Other Face categories retain 12 pt top/bottom. Native text or multi-face context may increase height.
+- Eyes and Nose panel padding is 8 pt top / 12 pt bottom, retaining 16 pt horizontal insets. Two 44 pt rails + 44 pt controls + 4 pt gap + 28 pt footer + 20 pt padding = the intended 184 pt minimum. Other Face categories retain 12 pt top/bottom. Native text or multi-face context may increase height.
 
 ### Selected, changed, and unavailable states
 
@@ -268,6 +269,21 @@ Validation: `git diff --check` passed. Source comparison confirmed that only the
 
 Private preview: `design/mockups/yumiro-eyes-controls-local.html` (ignored, contains the supplied photo). The inline regular-file copy is at `C:/Users/Jason/.codex/visualizations/2026/10/24/01a16cbd-75e4-7df3-aa0a-c421b001d992/yumiro-eyes-controls-local.html`. Do not force-add either preview. Research, inventory and review notes are in `design/eyes-controls-proposals.md`.
 
+## Nose controls: approved Direction words
+
+The user selected Direction words, requested shorter endpoints (for example Smaller nose → Smaller), reviewed the revision, then explicitly requested commit/push. Only Nose adopts the new controls. Eyes retains its existing appearance and behavior through the same focused-control helper; other Face categories keep their original controls.
+
+- Reuse the approved Stacked rails, original conditional edit dots, wide native ValueSlider, 44 x 32 pt value badge, 44 x 44 pt selected Reset, 4 pt reset-row gap, 28 pt minimum footer and 8/12/16 pt top/bottom/horizontal insets. Navigation, canvas, guides, gestures and the main tool rail are unchanged.
+- Short endpoint words are Size: Smaller / Larger; Width: Narrower / Wider; Narrow: Original / Slimmer; Lift: Down / Up; Tip: Smaller / Larger. The selected rail option provides the visible label. Concise anatomical explanations are part of the slider's accessibility hint, with no separate normal-state helper paragraph.
+- Size (`noseSize`), Width (`noseWidth`), Lift (`noseLift`) and Tip (`noseTip`) retain continuous -1...1 ranges, zero neutral at center and rounded signed -100...+100 display. Narrow (`nose`) retains continuous 0...1, zero neutral at the left edge and unsigned 0...100 output. Its neutral marker sits at the leading edge. The shared slider's two-way zero catch/haptic behavior is unchanged; Narrow does not acquire a center catch.
+- All five retain their existing mesh requirement. Missing mapping/no-face captions and retained unavailable values use the existing availability checks; busy processing retains the editor-wide lock. There is no new fallback or blanket restriction on other categories.
+- Selected Reset still brackets only its own assignment to 0 with `model.sliderEditing(true/false)` and keeps the original `abs(value) < 0.001` disabled check. Edit indicators retain `abs(value) > 0.001`. Reset all still calls `resetFaceSliders()`, retaining its all-Face shape scope for the selected face, Retouch preservation and other-face preservation.
+- Per-face storage, bindings, all five render callbacks, native undo history, shared ValueSlider and rendering/model files are unchanged. Existing multi-face context and tap-on-canvas switching remain.
+
+Private preview: `design/mockups/yumiro-nose-controls-local.html`, ignored because it contains the supplied photo. Do not force-add or publish it. Research and review notes: [nose-controls-proposals.md](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/design/nose-controls-proposals.md). Focused Mobbin references: [VSCO strength](https://mobbin.com/screens/62d0dba7-72e7-4dfb-a691-a986a789b5df) and [VSCO neutral reference](https://mobbin.com/screens/db2178a7-c420-4fb0-a0db-7bf067340d69).
+
+Browser checks covered light/dark, neutral/adjusted/unavailable states, narrow widths, 184/449 px panel/canvas geometry, reset spacing, separate face values and local reset/undo/redo. Source validation checks the presentation-only scope and unchanged native storage/ranges/undo/render callbacks. Native build, XCTest, Dynamic Type, VoiceOver, native geometry and device behavior still require validation on the Mac.
+
 ## Retouch: preferred proposal, not implemented
 
 The user prefers **Compact rows**, then requested two spacing corrections. The latest revision has been shown but has not received explicit final acceptance. Do not implement or push Retouch UI merely because Compact rows is the carousel's selected preview.
@@ -311,6 +327,7 @@ Portable copies are saved in `design/mockups/`. These are interactive HTML fragm
 | [yumiro-focused-slider-hybrid-local.html](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/design/mockups/yumiro-focused-slider-hybrid-local.html) | Focused slider with changed values | Approved and implemented; local-only and ignored because it contains the supplied photo |
 | [yumiro-face-navigation-local.html](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/design/mockups/yumiro-face-navigation-local.html) | Stacked rails / Category picker | Stacked rails explicitly selected and implemented; local-only and ignored because it contains the supplied photo |
 | [yumiro-eyes-controls-local.html](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/design/mockups/yumiro-eyes-controls-local.html) | Wide slider / Labeled slider | Reviewed Wide slider implemented with endpoint words and 4 pt reset gap; original dots retained; private and ignored |
+| [yumiro-nose-controls-local.html](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/design/mockups/yumiro-nose-controls-local.html) | Direction words / Inline guidance | Direction words selected with short endpoints and implemented; private and ignored |
 
 Absolute portable-copy directory on this PC:
 
@@ -455,4 +472,5 @@ Still unfinished:
 8. Verify Face navigation on iOS: all 8 categories/34 options, selected-neutral and selected-edited states, shared Face/Head dots, remembered subcategories, scrolling to offscreen selections, actual-overflow fades, busy lock, VoiceOver selected/edit announcements, per-face switching, Position, and unchanged slider/reset/undo behavior. Include narrow widths, light/dark and Dynamic Type through xLarge.
 9. Verify Eyes on iOS: all five signed ranges, neutral midpoint/zero catch, endpoint alignment/wrapping, 4 pt reset-row spacing, narrow phones and multi-face footer sizing, mesh-dependent availability and Size fallback, no-face/busy captions, retained unavailable values, per-face persistence, selected Reset versus all-Face Reset all scope, drag/reset undo/redo, haptics, VoiceOver and both appearances. No native height or canvas-size claim is established by browser measurements.
 10. Complete native contrast/material legibility checks and save actual device screenshots if requested. No native build, XCTest result, native screenshot, or device layout measurement is available in this handoff.
-11. Keep home, camera, video editor, other tool panels, effects, and image geometry outside unsolicited redesign work. Other Face categories use the approved navigation but retain their existing adjustment controls. Continue one explicitly requested photo-editor area at a time. Unselected layouts (Grouped shelf, Labeled chips, Action cluster, Labeled controls, Soft card, Pinned modes, Split controls, Value tabs, Face Category picker, Eyes Labeled slider, and Retouch Adjustment tabs) remain alternatives, not implementation tasks. The reverted dot-slot revision and removed Eyes helper prose are not pending implementation work.
+11. Verify Nose on iOS: all five ranges and short endpoint pairs, Narrow's unsigned 0...100 display and leading neutral marker, centered signed values for the other four, reset availability, missing mesh/no-face/busy values and captions, per-face switching, selected Reset versus all-Face Reset all scope, drag/reset undo/redo, narrow widths, Dynamic Type, VoiceOver and both appearances. Confirm the shared focused helper preserves approved Eyes behavior and native canvas geometry.
+12. Keep home, camera, video editor, other tool panels, effects, and image geometry outside unsolicited redesign work. Face categories other than Eyes and Nose use the approved navigation but retain their existing adjustment controls. Continue one explicitly requested photo-editor area at a time. Unselected layouts (Grouped shelf, Labeled chips, Action cluster, Labeled controls, Soft card, Pinned modes, Split controls, Value tabs, Face Category picker, Eyes Labeled slider, Nose Inline guidance, and Retouch Adjustment tabs) remain alternatives, not implementation tasks. The reverted dot-slot revision and removed Eyes helper prose are not pending implementation work.
