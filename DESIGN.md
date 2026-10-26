@@ -1,8 +1,10 @@
 # Yumiro design A handoff
 
-Updated 2026-10-26 (America/Toronto). This is the design A source of truth for approved colors, typography, spacing, component states, references, and implementation boundaries. The approved Nose Direction words design was pushed in **de9803a**. All eight Face categories and 34 subtabs reuse that design through shared controls in **c6b33b9**, with Position retaining its canvas oval. Warp uses **Stacked sliders**, and Heal → Spot uses Face-style controls with Reset below the value in **d7c7184**. The user selected **Compact actions** for Heal → People, Brush and Erase, with a stable photo size across all four Heal tabs; its design spec was pushed in **ca7c7dd**, but the app UI is not implemented. Retouch remains a proposal. Browser/source checks are recorded below; native build and device validation remain unfinished. Read this document before continuing design A.
+Updated 2026-10-26 (America/Toronto). This is the design A source of truth for approved colors, typography, spacing, component states, references, and implementation boundaries. Home uses **Quick start** in **2dfc24e**, with Edit a Photo primary. The approved Nose Direction words design was pushed in **de9803a**. All eight Face categories and 34 subtabs reuse that design through shared controls in **c6b33b9**, with Position retaining its canvas oval. Warp uses **Stacked sliders** in **08f498b**, and Heal → Spot uses Face-style controls with Reset below the value in **d7c7184**. The user selected **Compact actions** for Heal → People, Brush and Erase, with a stable photo size across all four Heal tabs; its design spec was pushed in **ca7c7dd**, but the app UI is not implemented. Retouch remains a proposal. Browser/source checks are recorded below; native build and device validation remain unfinished. Read this document before continuing design A.
 
 ## Worktree, branch, and authorization
+
+Home update, 2026-10-25: the user selected Quick start and authorized implementation. The HomeView changes were pushed in `2dfc24e`; see [Home handoff](design/home-screen-proposals.md). Existing photo/tool entry points, Camera, Edit a Video and About remain available. WelcomeView, AboutView, editor, camera and video implementations were preserved.
 
 Heal → Spot update, 2026-10-26: the user approved Face-style slider controls with Reset below the value and requested commit/push. This presentation is now implemented in `ContentView.swift`; see [Heal Spot handoff](design/heal-spot-proposals.md). Other Heal modes, canvas overlays, healing, gestures and undo/redo retain their existing code. Native validation remains pending.
 
@@ -30,6 +32,7 @@ Implemented components and selected designs are listed separately by status belo
 
 | Area | Approved direction | UI commit | Status |
 |---|---|---|---|
+| Home screen | Quick start; Edit a Photo primary | `2dfc24e` | Implemented and pushed; native validation pending |
 | Bottom photo-editor tool picker | Focus rail | `1799676` | Implemented and pushed |
 | Photo-editor top bar | Balanced bar | `93155a5` | Implemented and pushed |
 | Canvas Compare, Original badge, fit-to-screen | Soft controls | `63b357c` | Implemented and pushed |
@@ -41,12 +44,12 @@ Implemented components and selected designs are listed separately by status belo
 | Face → Eyes controls | Wide slider with endpoint words and 4 pt reset-row gap | `709b132` | Implemented and pushed; native validation pending |
 | Face → Nose controls | Direction words with short endpoints | `de9803a` | Implemented and pushed; native validation pending |
 | Face → every category/subtab | Shared Nose typography, controls, short guidance and states; Position retains oval | `c6b33b9` | Implemented and pushed; native validation pending |
-| Warp panel | Stacked sliders | This change | Implemented; browser reference/source checks passed; native validation pending |
+| Warp panel | Stacked sliders | `08f498b` | Implemented and pushed; browser reference/source checks passed; native validation pending |
 | Heal → Spot | Face-style slider; Reset below value | `d7c7184` | Implemented and pushed; source/browser reference checks passed; native validation pending |
 | Heal → People, Brush, Erase | Compact actions; stable photo size across all Heal tabs | None; design spec `ca7c7dd` | Selected mockup only; spec pushed; no app UI changes |
 | Retouch panel | Compact rows preferred | None | Mockup only; latest spacing revision awaits acceptance |
 
-The first four UI changes, Face navigation, Eyes controls and Nose controls are in [ContentView.swift](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/PhotoStudio/ContentView.swift). Crop, Rotate, and light/color styling are in [Adjustments.swift](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/PhotoStudio/Adjustments.swift), with explicit photo-only opt-ins (`photoCropStyle`, `photoRotateStyle`, `photoColorStyle`) at the `AdjustPanel` call in `ContentView.swift`. The shared video panel keeps its original presentation. Effect rendering, per-face storage, canvas gestures, camera, video editor, and home screen were not changed. Retouch still uses the original three `sliderRow` calls in app code.
+The photo-editor picker, top bar, canvas controls, Smooth, Face, Warp and Spot presentation changes are in [ContentView.swift](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/PhotoStudio/ContentView.swift). Crop, Rotate, and light/color styling are in [Adjustments.swift](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/PhotoStudio/Adjustments.swift), with explicit photo-only opt-ins (`photoCropStyle`, `photoRotateStyle`, `photoColorStyle`) at the `AdjustPanel` call in `ContentView.swift`. Home was implemented separately in [HomeView.swift](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/PhotoStudio/HomeView.swift), preserving the WelcomeView and AboutView definitions. The shared video panel keeps its original presentation. These presentation changes preserve effect rendering, per-face storage, canvas gestures, camera and video-editor behavior. Retouch still uses the original three `sliderRow` calls in app code.
 
 ## Visual foundations
 
@@ -115,7 +118,7 @@ Existing `Space` constants: `xs = 4`, `s = 8`, `m = 12`, `l = 16`, `xl = 24`, `x
 - Rotate and light/color Reset all targets are 64 × 44 pt, or 46 × 44 pt in their compact variant. Header item spacing is 8 pt; Rotate's transform-action spacing is 4 pt.
 - Face navigation: two 44 pt rows; each visible backing is 32 pt high with 14 pt corners, 12 pt horizontal label padding and 4 pt item gaps. Minimum category/option widths are 54/58 pt. Overflow fades are 16 pt wide and appear only at edges where content continues.
 - Eyes controls: a 44 pt slider/value/reset row, then a 4 pt gap before the minimum 28 pt endpoint/Reset all footer. Value badge is 44 × 32 pt with 10 pt corners; selected Reset is 44 × 44 pt with 14 pt corners. Footer reserves 104 pt for the badge/reset columns and two 8 pt gaps so endpoint words align with the slider.
-- Every Face category uses 8 pt top / 12 pt bottom padding, retaining 16 pt horizontal insets. Two 44 pt rails + 44 pt controls + 4 pt gap + 28 pt footer + 20 pt padding = the intended 184 pt minimum. Shared `FaceControlLayout` owns the row, value-badge and footer dimensions, now also reused by Warp. Warp uses the same insets; other tools retain their original padding. Native text or multi-face context may increase height.
+- Every Face category uses 8 pt top / 12 pt bottom padding, retaining 16 pt horizontal insets. Two 44 pt rails + 44 pt controls + 4 pt gap + 28 pt footer + 20 pt padding = the intended 184 pt minimum. Shared `FaceControlLayout` owns the row, value-badge and footer dimensions, now also reused by Warp and Spot. Warp uses the same insets; Spot retains Heal's 12 pt vertical padding. Native text or multi-face context may increase height.
 
 ### Selected, changed, and unavailable states
 
@@ -135,6 +138,20 @@ Existing `Space` constants: `xs = 4`, `s = 8`, `m = 12`, `l = 16`, `xl = 24`, `x
 Reset availability follows existing model checks, not the rounded text: light/color uses `abs(value) > 0.001`; Rotate uses its existing geometry check; Crop uses its current ratio check. Reset all remains unavailable when all Adjust settings are off and continues to reset the entire Adjust model, including crop and rotation. Do not silently change these scopes as part of styling.
 
 Eyes preserves the original selected-Reset disabled check `abs(value) < 0.001` plus mesh/busy availability. Its edit indicator uses `abs(value) > 0.001`; keep the existing comparisons rather than deriving state from rounded text. Face Reset all retains its scope over all Face shape settings on the selected face, preserving that face's Retouch settings and other faces.
+
+## Home: approved Quick start
+
+The user selected **Quick start** after reviewing two Mobbin-informed home mockups. It is implemented and pushed in `2dfc24e`. Guided list remains an unselected alternative.
+
+- **Edit a Photo** is the primary blue action, with a 68 pt minimum height and bold title3 text. Camera and Edit a Video sit immediately below as neutral actions with 56 pt minimum heights.
+- All eight existing tool shortcuts retain their names, SF Symbols, descriptions and order from `Tool.groups`: Enhance/Adjust; Smooth/Retouch/Face/Warp; Heal/Background. The two-column tiles have 72 pt minimum heights and 12 pt padding. The fixed Yumiro header retains a 44 × 44 pt About action; content scrolls through the tools and privacy text.
+- Semantic colors, system fonts, 14 pt corners, 16 pt content insets and 70% pressed opacity reuse the approved editor styling. Home Dynamic Type is uncapped. Secondary actions and tools switch to one column at xxLarge and above; labels wrap without fixed heights or forced shrinking.
+- Edit a Photo calls `openPhoto(nil)`, preserving the current model-tool selection. Shortcuts call `openPhoto(tool)`; Camera and video keep their existing callbacks. About keeps its existing sheet, including deferring Show the welcome again until dismissal. No new features or destinations were added.
+- Busy disables every home action, including About. Existing `DelayedPresence` and `BusyBadge` show **Opening…** after 300 ms, without a percentage or Cancel. Photo transfer and errors remain owned by ContentView/EditorModel.
+
+Only HomeView presentation changed; WelcomeView and AboutView remained identical. Editor, camera, video, onboarding, model and shared-control implementations were preserved. Browser checks covered 320 × 568, 375 × 667 and 390 × 844 in light/dark at default and 140% text, with no horizontal text overflow or targets below 44 px. Native layout, Dynamic Type, VoiceOver, navigation and loading still need Mac/device validation.
+
+Research and implementation details: [home-screen-proposals.md](design/home-screen-proposals.md). Local ignored preview: `design/mockups/yumiro-home-options-local.html`.
 
 ## Approved components and behavior
 
@@ -246,7 +263,7 @@ Preserved inventory (8 categories, 34 options):
 | Eyebrows | Thick, Lift, Shape, Tilt, Raise |
 | Forehead | Height |
 
-Local private mockup: `design/mockups/yumiro-face-navigation-local.html` (ignored, contains the supplied photo). The inline preview is served from the chat-owned regular-file copy at `C:/Users/Jason/.codex/visualizations/2026/10/24/01a16cbd-75e4-7df3-aa0a-c421b001d992/yumiro-face-navigation-local.html`; use that path for this chat's visualization reference. Do not force-add either private preview. Full inventory and research are in `design/face-navigation-proposals.md`.
+Local private mockup: `design/mockups/yumiro-face-navigation-local.html` (ignored, contains the supplied photo). The original review used the chat-owned regular-file copy at `C:/Users/Jason/.codex/visualizations/2026/10/24/01a16cbd-75e4-7df3-aa0a-c421b001d992/yumiro-face-navigation-local.html`. For another chat, use its own allowed visualization cache as described below. Do not force-add either private preview. Full inventory and research are in `design/face-navigation-proposals.md`.
 
 Mobbin references: [WhatsApp](https://mobbin.com/screens/a6e343ee-c1a6-419b-a22c-f962884c951d) for the two-level hierarchy, [VSCO](https://mobbin.com/screens/8aa78b87-281b-4e81-bb2e-a1d9e1d931f9) for grouped adjustments, and [Azar](https://mobbin.com/screens/8f295b8c-0d6e-4715-879d-af53d7f8352d) for independent selection/edit indicators.
 
@@ -326,6 +343,20 @@ The private editor-context reference covers default, adjusted, processing and no
 
 Research, exact ranges, source checks and native verification checklist: [warp-panel-proposals.md](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/design/warp-panel-proposals.md). Private preview: `design/mockups/yumiro-warp-panel-local.html`, ignored because it embeds the supplied photo. Never force-add or publish it.
 
+## Heal → Spot: approved Face-style controls
+
+The user requested the approved Face slider styling, then placed the circular brush Reset below the number. This final revision is implemented and pushed in `d7c7184`.
+
+- Keep the original Spot / People / Brush / Erase `ModeTabs` picker and binding. The Brush size label sits above a 44 pt slider/value row. The shared value badge is 44 × 32 pt with 10 pt corners; an 8 pt gap separates its column from the slider. Reset is directly below the badge, with a 44 × 44 pt target and 14 pt corners.
+- A 4 pt gap leads to the minimum 44 pt footer. Smaller/Larger align with the slider ends above “Tap a spot to heal. Pinch to zoom.” Reset occupies the right column. The base allocation is 24 pt vertical padding + 44 picker + 4 gap + 20 label + 44 controls + 4 gap + 44 footer = 184 pt. Native text/footer heights can grow for Dynamic Type; this is a minimum, not a fixed cap.
+- Reuse `ValueSlider`, `adjustmentValueBadge`, `adjustmentResetControl` and `FaceControlLayout`. Brush size stays continuous over `0.004...0.08`, with default/reset `.025` and normalized unitless 0–100 display, default **28**. Add no percent/px unit, zero marker, center catch or Reset all.
+- Reset is unavailable when `abs(brush - 0.025) < 0.001` or busy. It changes only brush size, preserving healed pixels and image undo history. Slider callbacks retain `sliding` and `brushRing`; neither parameter editing nor Reset calls `sliderEditing` or creates an image undo step.
+- Ready retains the neutral/edited Face styling. Healing and Saving retain the value in tertiary styling, disable interaction and show “Available when processing finishes.” Endpoint words are hidden while busy. The existing delayed canvas badge, temporary size-editing brush ring, Compare/Fit behavior and busy lock remain unchanged.
+
+Only Spot presentation and shared-control comments changed. Other Heal branches remain unchanged apart from indentation. Healing, tap behavior, pinch/pan, overlays and pixel undo/redo are preserved. The final placement passed 12 browser combinations: light/dark × ready/healing/saving × 320/390 px widths, including target size, alignment, guidance and Reset restoring 28. Source and whitespace checks passed; native build/device validation remains pending.
+
+Research, state contract and checks: [heal-spot-proposals.md](design/heal-spot-proposals.md). Private ignored preview: `design/mockups/yumiro-heal-spot-options-local.html`. The selected common 250 pt Heal allocation below is a later design-only proposal and is not part of the implemented Spot panel.
+
 ## Heal selection: selected Compact actions, design only
 
 The user explicitly chose **Compact actions** after reviewing two Mobbin-informed editor mockups, then requested that switching tabs never change the picture size. The current preview shows only this selected revision. Full-width Remove is an unselected alternative. The detailed [Heal selection spec](design/heal-people-proposals.md) was committed and pushed in `ca7c7dd`; no application source was changed by this work.
@@ -359,7 +390,7 @@ Brush says “Paint to add to the selection. Two fingers move and zoom.” Erase
 
 Native implementation, device layout, Dynamic Type, VoiceOver and real detection/removal/history checks remain pending. The preview demonstrates controls and states; it does not run image processing. Mobbin references, earlier comparisons and the full behavior contract are in [heal-people-proposals.md](design/heal-people-proposals.md).
 
-Private source: `design/mockups/yumiro-heal-selection-options-local.html`; standalone editor preview: `design/mockups/yumiro-heal-selection-editor-local.html`. Both embed the supplied portrait and stay ignored by Git. The source is a OneDrive reparse-point file, which failed direct inline reads. Refresh a byte-identical regular-file copy for inline display at `C:/Users/Jason/.codex/visualizations/2026/10/26/01a17641-5db9-7dc0-83c2-92b672843381/yumiro-heal-selection-options-local.html`; keep the worktree file as the editable source. Do not force-add photo previews or QA screenshots.
+Private source: `design/mockups/yumiro-heal-selection-options-local.html`; standalone editor preview: `design/mockups/yumiro-heal-selection-editor-local.html`. Both embed the supplied portrait and stay ignored by Git. The source is a OneDrive reparse-point file, which failed direct inline reads. The original review used a byte-identical regular-file copy at `C:/Users/Jason/.codex/visualizations/2026/10/26/01a17641-5db9-7dc0-83c2-92b672843381/yumiro-heal-selection-options-local.html`. For another chat, copy into its own allowed visualization cache; keep the worktree file as the editable source. Do not force-add photo previews or QA screenshots.
 
 ## Retouch: preferred proposal, not implemented
 
@@ -392,6 +423,7 @@ Portable copies are saved in `design/mockups/`. These are interactive HTML fragm
 
 | Mockup path on this PC | Direction to inspect | Status |
 |---|---|---|
+| [yumiro-home-options-local.html](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/design/mockups/yumiro-home-options-local.html) | Quick start / Guided list | Quick start selected and implemented in `2dfc24e`; Guided list unselected; local and ignored |
 | [yumiro-toolbar-options.html](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/design/mockups/yumiro-toolbar-options.html) | Focus rail | Original approved rail; Grouped shelf is an unselected alternative |
 | [yumiro-picker-light-dark.html](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/design/mockups/yumiro-picker-light-dark.html) | Focus rail | Light/dark rail follow-up; Labeled chips is unselected |
 | [yumiro-top-bar-options.html](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/design/mockups/yumiro-top-bar-options.html) | Balanced bar | Approved; Action cluster is unselected |
@@ -430,16 +462,21 @@ Current Face and Eyes conversation artifacts (outside Git):
 - [Approved Stacked rails](C:/Users/Jason/.codex/visualizations/2026/10/24/01a16cbd-75e4-7df3-aa0a-c421b001d992/yumiro-face-navigation-local.html).
 - [Approved Eyes Wide slider, final endpoint words and reset spacing](C:/Users/Jason/.codex/visualizations/2026/10/24/01a16cbd-75e4-7df3-aa0a-c421b001d992/yumiro-eyes-controls-local.html).
 
-The inline Face preview initially failed with “Invalid visualization read request” when referenced directly from the worktree. It was repaired by copying the fragment into this chat-owned visualization directory as a regular file and referencing that copy. The current Face and Eyes copies were verified byte-identical to their worktree originals; use these copies for this chat's inline previews.
+Home and Spot conversation artifacts (outside Git):
 
-Rotate, light/color, Face and Eyes local artifacts contain the private supplied photo. Their repo copies use the ignored `*-local.html` suffix. Never force-add these files. The original photo stays at `C:/Users/Jason/OneDrive/Pictures/Pfp/e9f7a063d2e8c7e60bf6781376e2c5f1.jpg`. These PC-local previews are not included in a Mac checkout; the committed implementation and proposal notes remain the portable handoff.
+- [Approved Quick start](C:/Users/Jason/.codex/visualizations/2026/10/25/01a17303-4c89-7020-8c3c-f782194262fa/yumiro-home-options-local.html).
+- [Approved Spot, Reset below the value](C:/Users/Jason/.codex/visualizations/2026/10/25/01a17303-4c89-7020-8c3c-f782194262fa/yumiro-heal-spot-options-local.html).
+
+Direct worktree previews have failed with “Invalid visualization read request” because of OneDrive reparse-point files. Keep the worktree mockup as the editable source and copy it byte-for-byte to a regular file in the active chat's allowed visualization directory for inline display. The paths above belong to their respective review chats; another chat must use its own allowed cache rather than assume those paths are valid inline references. Face/Eyes and Home/Spot copies were checked against their sources during their respective reviews.
+
+Rotate, light/color, Face, Eyes, Nose, Warp and Heal local artifacts contain the private supplied photo. Their repo copies use the ignored `*-local.html` suffix. Never force-add these files. The original photo stays at `C:/Users/Jason/OneDrive/Pictures/Pfp/e9f7a063d2e8c7e60bf6781376e2c5f1.jpg`. These PC-local previews are not included in a Mac checkout; the committed implementation and proposal notes remain the portable handoff.
 
 No native app screenshots were provided or saved in this chat. Browser screenshots were inspected during preview QA but were not persisted as files. The mockups approximate UIKit colors/icons; native code is authoritative for the implementation.
 
 To preview a fragment locally on this Windows host, use the visualize skill's renderer, for example:
 
 ```powershell
-python 'C:/Users/Jason/.codex/plugins/cache/openai-bundled/visualize/1.0.50/skills/visualize/scripts/render.py' 'C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/design/mockups/yumiro-retouch-panel-options.html' --serve
+python -X utf8 'C:/Users/Jason/.codex/plugins/cache/openai-bundled/visualize/1.0.55/skills/visualize/scripts/render.py' 'C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/design/mockups/yumiro-retouch-panel-options.html' --serve
 ```
 
 The preview server reads the fragment when it starts: restart it after editing, rather than assuming a page reload picked up the file. The HTML fragments need the host/renderer for carousel, icon, and optional design-control support. Do not modify app code merely to make a mockup render.
@@ -523,8 +560,11 @@ These references inform layout details; they do not authorize importing applicat
 
 Completed:
 
+- This 2026-10-26 handoff refresh began with `git pull --ff-only origin ui-a`: already up to date at `54e535c`, with a clean worktree. The refresh changes only `DESIGN.md`; validation below records earlier implementation and mockup checks, not new native tests.
+- The refresh passed `git diff --check`; all 38 unique local Markdown link targets exist, and the updated local renderer path exists. No app runtime tests were run for this documentation-only change.
+- Home (`2dfc24e`) passed the source-scope and browser checks recorded in `design/home-screen-proposals.md`: three small-phone sizes, both appearances and default/enlarged text. WelcomeView/AboutView preservation and existing routes were checked in source. Spot (`d7c7184`) passed the final 12 Reset-below-value combinations and brush-reset checks recorded in `design/heal-spot-proposals.md`; source comparison preserved other Heal branches and the rest of the editor.
 - Heal selection's final Compact actions mockup passed 120 tab/state/appearance/size combinations, plus direct tab-click checks confirming identical photo bounds. Clear, Reset, busy feedback and retained-selection presentation were also checked during design review. The spec was pushed to `origin/ui-a` as `ca7c7dd`; photo mockups remained local, and no application code was included. These are mockup checks, not native results.
-- `git diff --check` and the staged whitespace check passed for the Face navigation (`dd97cc7`) and Eyes (`709b132`) implementations. Their pushes were confirmed. Local `ui-a` and the local `origin/ui-a` tracking ref both resolved to `709b132f5323b31108ee09eff7b896b88d342823`, and the worktree was clean before this documentation update.
+- `git diff --check` and the staged whitespace check passed for the Face navigation (`dd97cc7`) and Eyes (`709b132`) implementations. Their pushes were confirmed. At the historical Eyes checkpoint, local `ui-a` and `origin/ui-a` both resolved to `709b132f5323b31108ee09eff7b896b88d342823`, with a clean worktree; this is not the current branch tip.
 - Source-scope comparisons confirmed that each UI commit only changed its approved area. The Smooth check also confirmed `EditorModel.swift` was unchanged.
 - Native behavior was inspected in source: selection, undo/reset grouping, smoothing default, per-face values, busy/crop guards, gesture calculations, and fit reset. These were source checks, not runtime tests.
 - Mockup JavaScript passed syntax checks. Browser previews were visually inspected for light/dark, selected/unselected or enabled/disabled states, and the requested panel states.
@@ -539,11 +579,12 @@ Completed:
 - Final Eyes endpoint words align with the slider's left/right edges below the track; the separate meaning/neutral sentence is absent. The 4 px reset-row gap and 184/449 px panel/canvas were preserved in light/dark and at a 320 px viewport. All five endpoint pairs fit without overlap, with wrapping where needed. Original dot visibility/layout was restored. No browser warnings/errors were reported. Rail stability from the discarded dot-slot trial is not an approved or implemented result.
 - The `709b132` source audit confirmed that only the Eyes presentation branch/helpers and Eyes-only top padding changed. Every other Face control and all navigation/dot code remained identical. `Adjustments.swift`, `EditorModel.swift`, `Theme.swift`, and `VideoEditView.swift` were unchanged; ranges, mesh guards, bindings, per-face storage, render/undo/reset callbacks and canvas code were preserved.
 - All five private repo previews (Rotate, original light/color comparison, hybrid, Face navigation, Eyes) remain ignored/untracked and outside the implementation commits. Earlier photo-byte checks confirmed the supplied JPEG in the Rotate/light/color previews; Face and Eyes reuse that same local image. No native app photo asset was added. Face/Eyes inline regular-file copies match their worktree mockups byte-for-byte.
-- This documentation-only update passed `git diff --check`; all 23 linked local files exist. No native screenshots are recorded; the linked HTML files are approved mockups or explicitly marked alternatives. No new app runtime tests were run for this documentation change.
+- The earlier Eyes handoff passed `git diff --check` and a check of its then-current 23 linked local files. That count is historical. No native screenshots are recorded; linked HTML files are approved mockups or explicitly marked alternatives. Documentation-only refreshes do not establish app runtime or native layout results.
 - Crop's JavaScript syntax/source checks passed, but its initial browser visual-QA attempt could not reach the local renderer. Do not count later successful Rotate/light/color QA or preview selections as completed Crop visual/runtime validation.
 
 Still unfinished:
 
+- Verify Quick start Home on a small iPhone in light/dark and normal/accessibility Dynamic Type: primary action, all eight tool routes, Camera/video, loading/errors, 44 pt targets, scrolling through the privacy text, VoiceOver order, About dismissal and Show the welcome again. Check generic Edit a Photo after switching tools. Home has no Dynamic Type cap; the editor's xLarge cap does not apply to it.
 - Heal → People/Brush/Erase remains design-only. If the user requests implementation, use the selected Compact actions revision and common Heal panel height, preserve all existing processing/selection/history behavior, and validate the native photo bounds across all four tabs, both appearances, narrow widths and Dynamic Type. Do not treat the spec-only commit/push as completed UI implementation.
 - Verify Heal → Spot on iOS: 0–100 brush display/default 28, Reset below the value, 44 pt control targets, endpoint and guidance wrapping through xLarge, light/dark and busy states, temporary brush ring, tap-to-heal, pinch/pan, Compare, Save and image undo/redo. Reset must change only brush size and create no undo step. People/Brush/Erase remain unchanged. Browser mockup checks are recorded in `design/heal-spot-proposals.md`; no native build or layout result is claimed.
 
@@ -560,4 +601,4 @@ Still unfinished:
 11. Verify Nose on iOS: all five ranges and short endpoint pairs, Narrow's unsigned 0...100 display and leading neutral marker, centered signed values for the other four, reset availability, missing mesh/no-face/busy values and captions, per-face switching, selected Reset versus all-Face Reset all scope, drag/reset undo/redo, narrow widths, Dynamic Type, VoiceOver and both appearances. Confirm the shared focused helper preserves approved Eyes behavior and native canvas geometry.
 12. Verify all Face categories/subtabs natively using the inventory in `design/face-controls-verification.md`: both appearances, all control states, one-way and two-way ranges/zero positions, selected Reset and Reset all, per-face values and Face/Head aliases, undo/redo, availability/fallbacks, Dynamic Type, VoiceOver and native panel/canvas geometry. Position must retain oval dragging, second-finger cancellation, its original two-axis reset and all canvas gestures.
 13. Verify Warp's Stacked sliders on iOS: both appearances; default/adjusted/processing/no-face states; exact brush ranges and normalized 33/100 defaults; parameter resets without image undo; Reset Face with undo/redo and preserved Face adjustments/other faces/brush settings; temporary brush ring; tap/drag face selection; off-face pan; pinch cancelling an in-progress push; Compare; narrow widths, multi-face context, Dynamic Type and VoiceOver. Measure native panel/canvas layout; no native size claim is established by the browser reference.
-14. Keep home, camera, video editor, other tool panels, effects, and image geometry outside unsolicited redesign work. Every Face category reuses the approved Nose design, with Position's special interaction preserved; Warp uses the selected Stacked sliders. Continue within explicitly requested scope. Unselected layouts (Grouped shelf, Labeled chips, Action cluster, Labeled controls, Soft card, Pinned modes, Split controls, Value tabs, Face Category picker, Eyes Labeled slider, Nose Inline guidance, Warp Focused slider, and Retouch Adjustment tabs) remain alternatives, not implementation tasks. The reverted dot-slot revision and removed Eyes helper prose are not pending implementation work.
+14. Keep home, camera, video editor, other tool panels, effects, and image geometry outside unsolicited redesign work. Home uses Quick start; every Face category reuses the approved Nose design, with Position's special interaction preserved; Warp uses Stacked sliders; Spot uses Face-style controls with Reset below the value. Continue within explicitly requested scope. Unselected layouts (Home Guided list, Grouped shelf, Labeled chips, Action cluster, Labeled controls, Soft card, Pinned modes, Split controls, Value tabs, Face Category picker, Eyes Labeled slider, Nose Inline guidance, Warp Focused slider, Heal selection Full-width Remove, and Retouch Adjustment tabs) remain alternatives, not implementation tasks. The reverted dot-slot revision and removed Eyes helper prose are not pending implementation work.
