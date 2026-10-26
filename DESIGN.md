@@ -1,10 +1,12 @@
 # Yumiro design A handoff
 
-Updated 2026-10-25 (America/Toronto). This is the design A source of truth for approved colors, typography, spacing, component states, references, and implementation boundaries. The approved Nose Direction words design was pushed in **de9803a**. All eight Face categories and 34 subtabs reuse that design through shared controls in **c6b33b9**, with Position retaining its canvas oval. The user selected **Stacked sliders** for Warp; that panel now reuses Face's value badges, reset controls and geometry. Retouch remains a proposal. Browser/source checks are recorded below; native build and device validation remain unfinished. Read this document before continuing design A.
+Updated 2026-10-26 (America/Toronto). This is the design A source of truth for approved colors, typography, spacing, component states, references, and implementation boundaries. The approved Nose Direction words design was pushed in **de9803a**. All eight Face categories and 34 subtabs reuse that design through shared controls in **c6b33b9**, with Position retaining its canvas oval. Warp uses **Stacked sliders**, and Heal → Spot uses Face-style controls with Reset below the value in **d7c7184**. The user selected **Compact actions** for Heal → People, Brush and Erase, with a stable photo size across all four Heal tabs; its design spec was pushed in **ca7c7dd**, but the app UI is not implemented. Retouch remains a proposal. Browser/source checks are recorded below; native build and device validation remain unfinished. Read this document before continuing design A.
 
 ## Worktree, branch, and authorization
 
 Heal → Spot update, 2026-10-26: the user approved Face-style slider controls with Reset below the value and requested commit/push. This presentation is now implemented in `ContentView.swift`; see [Heal Spot handoff](design/heal-spot-proposals.md). Other Heal modes, canvas overlays, healing, gestures and undo/redo retain their existing code. Native validation remains pending.
+
+Heal selection update, 2026-10-26: the user requested design-only work for People, Brush and Erase, chose Compact actions, then requested that switching tabs keep the picture size fixed. The selected mockup now includes all four Heal tabs within a common panel allocation. The subsequent commit/push request published only [the design spec](design/heal-people-proposals.md) in `ca7c7dd`; it did not implement the panels or publish the private photo mockups. Preserve that distinction when continuing this work.
 
 - Work only in `C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a`, on branch `ui-a`. Use absolute paths for file operations.
 - Remote: `https://github.com/zuxu4n/Yumiro.git`.
@@ -24,7 +26,7 @@ The script fetches/pulls `ui-a` and installs a separate app named **Yumiro A**, 
 
 ## Implementation status
 
-The approved components below are implemented. The latest update implements Heal → Spot with Face-style controls and Reset below the value. No Retouch redesign is implemented, and choosing an option in a mockup alone does not approve implementation. Every implemented component still needs native validation on the Mac/device.
+Implemented components and selected designs are listed separately by status below. The latest implemented Heal update is Spot with Face-style controls and Reset below the value. The selected People/Brush/Erase Compact actions design and stable canvas remain mockup-only, as requested. No Retouch redesign is implemented. Every implemented component still needs native validation on the Mac/device.
 
 | Area | Approved direction | UI commit | Status |
 |---|---|---|---|
@@ -40,7 +42,8 @@ The approved components below are implemented. The latest update implements Heal
 | Face → Nose controls | Direction words with short endpoints | `de9803a` | Implemented and pushed; native validation pending |
 | Face → every category/subtab | Shared Nose typography, controls, short guidance and states; Position retains oval | `c6b33b9` | Implemented and pushed; native validation pending |
 | Warp panel | Stacked sliders | This change | Implemented; browser reference/source checks passed; native validation pending |
-| Heal → Spot | Face-style slider; Reset below value | This change | Implemented; source/browser reference checks passed; native validation pending |
+| Heal → Spot | Face-style slider; Reset below value | `d7c7184` | Implemented and pushed; source/browser reference checks passed; native validation pending |
+| Heal → People, Brush, Erase | Compact actions; stable photo size across all Heal tabs | None; design spec `ca7c7dd` | Selected mockup only; spec pushed; no app UI changes |
 | Retouch panel | Compact rows preferred | None | Mockup only; latest spacing revision awaits acceptance |
 
 The first four UI changes, Face navigation, Eyes controls and Nose controls are in [ContentView.swift](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/PhotoStudio/ContentView.swift). Crop, Rotate, and light/color styling are in [Adjustments.swift](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/PhotoStudio/Adjustments.swift), with explicit photo-only opt-ins (`photoCropStyle`, `photoRotateStyle`, `photoColorStyle`) at the `AdjustPanel` call in `ContentView.swift`. The shared video panel keeps its original presentation. Effect rendering, per-face storage, canvas gestures, camera, video editor, and home screen were not changed. Retouch still uses the original three `sliderRow` calls in app code.
@@ -323,6 +326,41 @@ The private editor-context reference covers default, adjusted, processing and no
 
 Research, exact ranges, source checks and native verification checklist: [warp-panel-proposals.md](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/design/warp-panel-proposals.md). Private preview: `design/mockups/yumiro-warp-panel-local.html`, ignored because it embeds the supplied photo. Never force-add or publish it.
 
+## Heal selection: selected Compact actions, design only
+
+The user explicitly chose **Compact actions** after reviewing two Mobbin-informed editor mockups, then requested that switching tabs never change the picture size. The current preview shows only this selected revision. Full-width Remove is an unselected alternative. The detailed [Heal selection spec](design/heal-people-proposals.md) was committed and pushed in `ca7c7dd`; no application source was changed by this work.
+
+### Layout and photo stability
+
+- Keep the existing Spot / People / Brush / Erase segmented picker. All four tabs share a **250 pt panel allocation at default text size in the mockup**, so the photo keeps identical size, position and fit through tab changes and state changes. People, Brush and Erase also keep their action row at the same bottom position.
+- For a later native implementation, derive a shared panel height from the largest tab at the current width and Dynamic Type size. Do not resize the canvas from the active tab's content height or reset zoom/pan on a mode change. The 250 pt browser reference is not a verified native size or a hard cap for larger text.
+- Brush and Erase reuse the latest approved Spot styling: 15 pt label/value text, 13 pt guidance, 44 pt control targets, value beside the slider, and Reset directly below the value. Smaller/Larger align with the slider, reserving a 44 pt accessory column plus an 8 pt gap. The selection guidance footer is 58 pt tall in the base mockup.
+- Keep **Add Shadow**, **Clear**, and **Remove** on one row. Remove is the only filled primary panel action when a selection exists. Clear has the accessible label “Clear selection.” Without a selection, all three remain visible and disabled.
+- Spot appears as context for reviewing the stable tab transition: its approved controls and guidance are unchanged, and it gets no selection mask, Clear, Remove or Add Shadow. Only the shared outer panel allocation reserves additional space. Other editor panels and chrome remain outside this redesign.
+
+### Selection states and guidance
+
+| State | Presentation |
+|---|---|
+| No selection | “Tap a person to select them. Tap the outline again to remove.” Selection actions disabled; Brush/Erase sizing remains available. |
+| Selection ready | “Tap another person to add them. Tap the outline or Remove to remove.” Remove primary; Add Shadow and Clear secondary. |
+| Finding people | Existing foreground lookup uses the delayed, centered “Finding the person…” badge. Keep any selection visible and disable interaction while busy. Background prewarming remains nonblocking. |
+| Removing | Keep the selection visible with the existing delayed “Removing…” badge; disable interaction. Add no progress percentage, cancel action or confirmation. |
+| No person found | “No person found there. Try another person or use Brush.” This reports a missed tap. Retain any prior selection and keep it removable when processing finishes. |
+
+Brush says “Paint to add to the selection. Two fingers move and zoom.” Erase says “Paint to trim the selection. Two fingers move and zoom.” With no selection, Erase directs the user to select with People or Brush first. A successful selection or mode change clears the missed-tap panel hint.
+
+### Preserved behavior and verification
+
+- Preserve person detection, splitting/growth, pink selection tint and white outline, and existing tap behavior. An unselected person is added; tapping inside the selected mask still removes it immediately. The mockup outline is illustrative, not detector output.
+- Preserve continuous brush range `0.004...0.08`, default/reset `.025`, unitless normalized display 0–100 (default **28**), and the `.001` reset threshold. Size changes and Reset do not create image undo steps. Clear only clears selection; Add Shadow retains its current asynchronous processing and result feedback.
+- Preserve full-resolution removal, retained selection on failure, selection clearing on success, one pixel undo step per removal, and existing undo/redo. Keep selection across mode switches, existing Compare/Fit behavior, temporary size-editing brush ring, and pinch/pan gestures. Do not use Background's `findingPeople` property for Heal or make `preparePeople()` prewarming block Brush/Erase.
+- The selected revision passed **120 browser combinations**: four tabs × five states × light/dark × 390×844, 375×667 and 320×568. Photo bounds stayed identical across tabs/states at each size; selection actions stayed fixed; controls fit with 44 pt targets. Clicking People → Brush → Erase → Spot → People also preserved identical photo bounds. No JavaScript page errors occurred.
+
+Native implementation, device layout, Dynamic Type, VoiceOver and real detection/removal/history checks remain pending. The preview demonstrates controls and states; it does not run image processing. Mobbin references, earlier comparisons and the full behavior contract are in [heal-people-proposals.md](design/heal-people-proposals.md).
+
+Private source: `design/mockups/yumiro-heal-selection-options-local.html`; standalone editor preview: `design/mockups/yumiro-heal-selection-editor-local.html`. Both embed the supplied portrait and stay ignored by Git. The source is a OneDrive reparse-point file, which failed direct inline reads. Refresh a byte-identical regular-file copy for inline display at `C:/Users/Jason/.codex/visualizations/2026/10/26/01a17641-5db9-7dc0-83c2-92b672843381/yumiro-heal-selection-options-local.html`; keep the worktree file as the editable source. Do not force-add photo previews or QA screenshots.
+
 ## Retouch: preferred proposal, not implemented
 
 The user prefers **Compact rows**, then requested two spacing corrections. The latest revision has been shown but has not received explicit final acceptance. Do not implement or push Retouch UI merely because Compact rows is the carousel's selected preview.
@@ -369,6 +407,8 @@ Portable copies are saved in `design/mockups/`. These are interactive HTML fragm
 | [yumiro-nose-controls-local.html](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/design/mockups/yumiro-nose-controls-local.html) | Direction words / Inline guidance | Direction words selected with short endpoints and implemented; private and ignored |
 | [yumiro-face-controls-local.html](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/design/mockups/yumiro-face-controls-local.html) | Shared Nose controls throughout Face | Implementation verification reference for all 8 categories / 34 subtabs; private and ignored |
 | [yumiro-warp-panel-local.html](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/design/mockups/yumiro-warp-panel-local.html) | Stacked sliders / Focused slider | Stacked explicitly selected and implemented; Focused remains an alternative; private and ignored |
+| [yumiro-heal-spot-options-local.html](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/design/mockups/yumiro-heal-spot-options-local.html) | Face-style slider, Reset below value | Approved and implemented in `d7c7184`; private and ignored |
+| [yumiro-heal-selection-options-local.html](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/design/mockups/yumiro-heal-selection-options-local.html) | Compact actions, stable photo across all Heal tabs | Selected design only; all five selection states in light/dark; private and ignored |
 
 Absolute portable-copy directory on this PC:
 
@@ -483,6 +523,7 @@ These references inform layout details; they do not authorize importing applicat
 
 Completed:
 
+- Heal selection's final Compact actions mockup passed 120 tab/state/appearance/size combinations, plus direct tab-click checks confirming identical photo bounds. Clear, Reset, busy feedback and retained-selection presentation were also checked during design review. The spec was pushed to `origin/ui-a` as `ca7c7dd`; photo mockups remained local, and no application code was included. These are mockup checks, not native results.
 - `git diff --check` and the staged whitespace check passed for the Face navigation (`dd97cc7`) and Eyes (`709b132`) implementations. Their pushes were confirmed. Local `ui-a` and the local `origin/ui-a` tracking ref both resolved to `709b132f5323b31108ee09eff7b896b88d342823`, and the worktree was clean before this documentation update.
 - Source-scope comparisons confirmed that each UI commit only changed its approved area. The Smooth check also confirmed `EditorModel.swift` was unchanged.
 - Native behavior was inspected in source: selection, undo/reset grouping, smoothing default, per-face values, busy/crop guards, gesture calculations, and fit reset. These were source checks, not runtime tests.
@@ -503,6 +544,7 @@ Completed:
 
 Still unfinished:
 
+- Heal → People/Brush/Erase remains design-only. If the user requests implementation, use the selected Compact actions revision and common Heal panel height, preserve all existing processing/selection/history behavior, and validate the native photo bounds across all four tabs, both appearances, narrow widths and Dynamic Type. Do not treat the spec-only commit/push as completed UI implementation.
 - Verify Heal → Spot on iOS: 0–100 brush display/default 28, Reset below the value, 44 pt control targets, endpoint and guidance wrapping through xLarge, light/dark and busy states, temporary brush ring, tap-to-heal, pinch/pan, Compare, Save and image undo/redo. Reset must change only brush size and create no undo step. People/Brush/Erase remain unchanged. Browser mockup checks are recorded in `design/heal-spot-proposals.md`; no native build or layout result is claimed.
 
 1. Get acceptance of the latest Retouch spacing revision before implementing Compact rows. Retouch remains the original UI in the app.
