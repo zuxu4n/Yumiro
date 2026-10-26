@@ -709,20 +709,24 @@ struct ContentView: View {
                 }
                 HintText(blurCaption)
             case .heal:
-                ModeTabs(items: HealMode.allCases, selection: $model.healMode)
-                if model.healMode != .people {
-                    sliderRow("Brush size", value: $model.brush, range: 0.004...0.08, reset: 0.025, undoable: false)
-                }
-                if model.healMode.selects {
-                    HStack(spacing: Space.s) {
-                        PanelTextButton(title: "Add shadow") { Task { await model.addShadow() } }
-                        PanelTextButton(title: "Clear") { model.clearSelection() }
-                        Spacer()
-                        PanelTextButton(title: "Remove", icon: "wand.and.stars", prominent: true) { Task { await model.removeSelection() } }
+                if model.healMode == .spot {
+                    healSpotPanel
+                } else {
+                    ModeTabs(items: HealMode.allCases, selection: $model.healMode)
+                    if model.healMode != .people {
+                        sliderRow("Brush size", value: $model.brush, range: 0.004...0.08, reset: 0.025, undoable: false)
                     }
-                    .disabled(!model.hasSelection || model.busy != nil)
+                    if model.healMode.selects {
+                        HStack(spacing: Space.s) {
+                            PanelTextButton(title: "Add shadow") { Task { await model.addShadow() } }
+                            PanelTextButton(title: "Clear") { model.clearSelection() }
+                            Spacer()
+                            PanelTextButton(title: "Remove", icon: "wand.and.stars", prominent: true) { Task { await model.removeSelection() } }
+                        }
+                        .disabled(!model.hasSelection || model.busy != nil)
+                    }
+                    HintText(healCaption)
                 }
-                HintText(healCaption)
             case .face:
                 VStack(alignment: .leading, spacing: 0) {
                     areaTabs
@@ -992,7 +996,7 @@ struct ContentView: View {
         }
     }
 
-    /// Face and Warp share value and reset styling so their control states stay consistent.
+    /// Face, Warp and Spot share value and reset styling so their control states stay consistent.
     private func adjustmentValueBadge(_ label: String, edited: Bool, unavailable: Bool) -> some View {
         Text(label)
             .font(.subheadline.weight(.medium).monospacedDigit())
@@ -1136,6 +1140,71 @@ struct ContentView: View {
         }
     }
 
+    /// Spot uses Face's controls, with brush Reset directly below its value and no image undo step.
+    private var healSpotPanel: some View {
+        let range: ClosedRange<Float> = 0.004...0.08
+        let reset: Float = 0.025
+        let unavailable = model.busy != nil
+        let edited = abs(model.brush - reset) >= 0.001
+        let valueLabel = String(Int(((model.brush - range.lowerBound) / (range.upperBound - range.lowerBound) * 100).rounded()))
+
+        return VStack(alignment: .leading, spacing: 0) {
+            ModeTabs(items: HealMode.allCases, selection: $model.healMode)
+                .frame(height: FaceControlLayout.rowHeight)
+
+            VStack(alignment: .leading, spacing: 0) {
+                Text("Brush size")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(unavailable ? Color(.tertiaryLabel) : Color.primary)
+                    .frame(minHeight: 20, alignment: .leading)
+                    .accessibilityHidden(true)
+
+                HStack(spacing: Space.s) {
+                    ValueSlider(value: $model.brush, range: range, reset: reset, editing: { editing in
+                        sliding = editing
+                        brushRing = editing
+                    }, showsValue: false)
+                    .disabled(unavailable)
+                    .accessibilityLabel("Brush size")
+                    .accessibilityValue(valueLabel + (edited ? "" : ", default"))
+                    .accessibilityHint("Left: smaller. Right: larger. Default is 28. Tap a spot to heal. Pinch to zoom.")
+
+                    adjustmentValueBadge(valueLabel, edited: edited, unavailable: unavailable)
+                }
+                .frame(height: FaceControlLayout.rowHeight)
+
+                HStack(alignment: .top, spacing: Space.s) {
+                    VStack(alignment: .leading, spacing: Space.xs) {
+                        HStack(spacing: Space.xs) {
+                            Text("Smaller")
+                            Spacer(minLength: Space.xs)
+                            Text("Larger")
+                        }
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .frame(minHeight: 18)
+                        .opacity(unavailable ? 0 : 1)
+                        .accessibilityHidden(true)
+
+                        HintText(unavailable ? "Available when processing finishes." : "Tap a spot to heal. Pinch to zoom.")
+                            .frame(minHeight: 18, alignment: .leading)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    adjustmentResetControl(label: "Reset brush size",
+                                           disabled: abs(model.brush - reset) < 0.001 || unavailable,
+                                           hint: "Returns brush size to 28. Keeps healed spots.") {
+                        model.brush = reset
+                    }
+                    .frame(width: FaceControlLayout.valueWidth)
+                }
+                .frame(minHeight: FaceControlLayout.rowHeight, alignment: .top)
+                .padding(.top, Space.xs)
+            }
+            .padding(.top, Space.xs)
+        }
+    }
+
     private var healCaption: String {
         switch model.healMode {
         case .spot: return "Tap a spot to remove it. Pinch to zoom in on small spots."
@@ -1267,7 +1336,7 @@ extension Tool {
     }
 }
 
-/// Shared geometry for the approved Face and Warp controls. Reset targets use the top bar's 44 pt size.
+/// Shared geometry for the approved Face, Warp and Spot controls. Reset targets use the top bar's 44 pt size.
 private enum FaceControlLayout {
     static let rowHeight: CGFloat = 44
     static let valueWidth: CGFloat = 44

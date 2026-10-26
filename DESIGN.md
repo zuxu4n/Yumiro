@@ -4,6 +4,8 @@ Updated 2026-10-25 (America/Toronto). This is the design A source of truth for a
 
 ## Worktree, branch, and authorization
 
+Heal → Spot update, 2026-10-26: the user approved Face-style slider controls with Reset below the value and requested commit/push. This presentation is now implemented in `ContentView.swift`; see [Heal Spot handoff](design/heal-spot-proposals.md). Other Heal modes, canvas overlays, healing, gestures and undo/redo retain their existing code. Native validation remains pending.
+
 - Work only in `C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a`, on branch `ui-a`. Use absolute paths for file operations.
 - Remote: `https://github.com/zuxu4n/Yumiro.git`.
 - The user authorized committing to `ui-a` and pushing with `git push origin ui-a`. This supersedes the earlier instruction not to push until told.
@@ -22,7 +24,7 @@ The script fetches/pulls `ui-a` and installs a separate app named **Yumiro A**, 
 
 ## Implementation status
 
-The approved components below are implemented. The latest update implements the user's written selection of Stacked sliders for Warp. No Retouch redesign is implemented, and choosing an option in a mockup alone does not approve implementation. Every implemented component still needs native validation on the Mac/device.
+The approved components below are implemented. The latest update implements Heal → Spot with Face-style controls and Reset below the value. No Retouch redesign is implemented, and choosing an option in a mockup alone does not approve implementation. Every implemented component still needs native validation on the Mac/device.
 
 | Area | Approved direction | UI commit | Status |
 |---|---|---|---|
@@ -38,6 +40,7 @@ The approved components below are implemented. The latest update implements the 
 | Face → Nose controls | Direction words with short endpoints | `de9803a` | Implemented and pushed; native validation pending |
 | Face → every category/subtab | Shared Nose typography, controls, short guidance and states; Position retains oval | `c6b33b9` | Implemented and pushed; native validation pending |
 | Warp panel | Stacked sliders | This change | Implemented; browser reference/source checks passed; native validation pending |
+| Heal → Spot | Face-style slider; Reset below value | This change | Implemented; source/browser reference checks passed; native validation pending |
 | Retouch panel | Compact rows preferred | None | Mockup only; latest spacing revision awaits acceptance |
 
 The first four UI changes, Face navigation, Eyes controls and Nose controls are in [ContentView.swift](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/PhotoStudio/ContentView.swift). Crop, Rotate, and light/color styling are in [Adjustments.swift](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/PhotoStudio/Adjustments.swift), with explicit photo-only opt-ins (`photoCropStyle`, `photoRotateStyle`, `photoColorStyle`) at the `AdjustPanel` call in `ContentView.swift`. The shared video panel keeps its original presentation. Effect rendering, per-face storage, canvas gestures, camera, video editor, and home screen were not changed. Retouch still uses the original three `sliderRow` calls in app code.
@@ -499,6 +502,8 @@ Completed:
 - Crop's JavaScript syntax/source checks passed, but its initial browser visual-QA attempt could not reach the local renderer. Do not count later successful Rotate/light/color QA or preview selections as completed Crop visual/runtime validation.
 
 Still unfinished:
+
+- Verify Heal → Spot on iOS: 0–100 brush display/default 28, Reset below the value, 44 pt control targets, endpoint and guidance wrapping through xLarge, light/dark and busy states, temporary brush ring, tap-to-heal, pinch/pan, Compare, Save and image undo/redo. Reset must change only brush size and create no undo step. People/Brush/Erase remain unchanged. Browser mockup checks are recorded in `design/heal-spot-proposals.md`; no native build or layout result is claimed.
 
 1. Get acceptance of the latest Retouch spacing revision before implementing Compact rows. Retouch remains the original UI in the app.
 2. Build/install the pushed design A on the user's Mac with `tools/install_variant.sh a`. No Xcode build, XCTest, or phone install has been run in this chat. No compiler-success claim is justified.
