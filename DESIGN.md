@@ -52,6 +52,7 @@ The 2026-10-27 source review confirmed that `ContentView` still routes Spot to `
 | Heal → Spot | Face-style slider; Reset below value | `d7c7184` | Implemented and pushed; source/browser reference checks passed; native validation pending |
 | Heal → People, Brush, Erase | Compact actions; stable photo size across all Heal tabs | None; design spec `ca7c7dd` | Selected mockup only; spec pushed; no app UI changes |
 | Background → Remove | Labeled swatches | This change | Implemented; source checks passed; native validation pending |
+| Background → shared mask corrections | Compact rows; revised spacing and no footer text | None; design handoff in this change | Reviewed design only; app UI not implemented |
 | Retouch panel | Compact rows preferred | None | Mockup only; latest spacing revision awaits acceptance |
 
 The photo-editor picker, top bar, canvas controls, Smooth, Face, Warp and Spot presentation changes are in [ContentView.swift](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/PhotoStudio/ContentView.swift). Crop, Rotate, and light/color styling are in [Adjustments.swift](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/PhotoStudio/Adjustments.swift), with explicit photo-only opt-ins (`photoCropStyle`, `photoRotateStyle`, `photoColorStyle`) at the `AdjustPanel` call in `ContentView.swift`. Home was implemented separately in [HomeView.swift](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/PhotoStudio/HomeView.swift), preserving the WelcomeView and AboutView definitions. The shared video panel keeps its original presentation. These presentation changes preserve effect rendering, per-face storage, canvas gestures, camera and video-editor behavior. Retouch still uses the original three `sliderRow` calls in app code.
@@ -416,6 +417,14 @@ The user chose **Labeled swatches** in writing. Preview tiles remains an unselec
 The previous review passed 48 browser combinations across both alternatives, four choices, three detection states and light/dark. The final preview also passed 12 narrow-width layout/state checks. These checks cover the mockup, whose cutout is illustrative. Native compilation, Dynamic Type, VoiceOver, actual segmentation and export/history checks still require Xcode and a device/simulator.
 
 No separate approved Blur redesign was found in the other chats or this worktree. This design uses ui-a's current Blur/Refine controls and approved shared editor styling. Research and the implementation contract: [remove-background-proposals.md](design/remove-background-proposals.md). Private ignored preview: `design/mockups/yumiro-remove-background-options-local.html`.
+
+## Background mask corrections: reviewed compact design, not implemented
+
+The user reviewed the shared Blur/Remove correction controls, requested less text and a larger photo, removed the foreground/PNG footer labels, corrected the gap below the Background tabs, then requested commit/push. This publishes the [design handoff](design/mask-correction-proposals.md) only; no application UI changes are included.
+
+The final mockup uses one 44 pt row for View / Brush / Erase and Reset Fixes, plus one 44 pt row for Size, slider, value and size Reset. The swatches have an 8 pt gap below Blur/Remove. Brush/Erase use a 228 pt panel and 405 pt canvas in the 390×844 browser reference; View hides Size and uses the existing 184 pt minimum. Mode meanings and Clear's PNG explanation remain in accessible labels/tooltips. The two reset scopes, default size 24, foreground overlay, painting/history behavior and correction carryover remain the implementation contract, with native implementation/validation pending.
+
+Private ignored preview: `design/mockups/yumiro-mask-correction-options-local.html`. It contains the supplied photo and must not be force-added to Git. Final browser checks confirmed the footer removal, tab gap and swatch alignment; earlier state/history checks are recorded in the handoff.
 
 ## Retouch: preferred proposal, not implemented
 
