@@ -28,9 +28,11 @@ The script fetches/pulls `ui-a` and installs a separate app named **Yumiro A**, 
 
 ## Implementation status
 
+Background → Remove update, 2026-10-27: the user selected **Labeled swatches** after reviewing both editor-context proposals. The Remove-only presentation is implemented in `ContentView.swift`, with Off/Clear/White/Black swatches, selected rings/checks, separate detection status and transparent-PNG guidance. Source checks passed; native validation remains pending. Blur and mask-correction controls retain their existing code. See [Remove Background handoff](design/remove-background-proposals.md).
+
 Implemented components and selected designs are listed separately by status below. The latest implemented Heal update is Spot with Face-style controls and Reset below the value. The selected People/Brush/Erase Compact actions design and stable canvas remain mockup-only, as requested. No Retouch redesign is implemented. Every implemented component still needs native validation on the Mac/device.
 
-The 2026-10-27 source review confirmed that `ContentView` still routes Spot to `healSpotPanel`, Warp to `warpPanel`, and People/Brush/Erase to their original controls. The editor still uses a 184 pt minimum tool panel; the proposed common 250 pt Heal allocation is not in app code. `HomeView` retains Quick start and all existing entry callbacks. This refresh changes documentation only.
+The 2026-10-27 source review confirmed that `ContentView` still routes Spot to `healSpotPanel`, Warp to `warpPanel`, and People/Brush/Erase to their original controls. The editor still uses a 184 pt minimum tool panel; the proposed common 250 pt Heal allocation is not in app code. Remove's additional content can grow that minimum naturally. `HomeView` retains Quick start and all existing entry callbacks.
 
 | Area | Approved direction | UI commit | Status |
 |---|---|---|---|
@@ -49,6 +51,7 @@ The 2026-10-27 source review confirmed that `ContentView` still routes Spot to `
 | Warp panel | Stacked sliders | `08f498b` | Implemented and pushed; browser reference/source checks passed; native validation pending |
 | Heal → Spot | Face-style slider; Reset below value | `d7c7184` | Implemented and pushed; source/browser reference checks passed; native validation pending |
 | Heal → People, Brush, Erase | Compact actions; stable photo size across all Heal tabs | None; design spec `ca7c7dd` | Selected mockup only; spec pushed; no app UI changes |
+| Background → Remove | Labeled swatches | This change | Implemented; source checks passed; native validation pending |
 | Retouch panel | Compact rows preferred | None | Mockup only; latest spacing revision awaits acceptance |
 
 The photo-editor picker, top bar, canvas controls, Smooth, Face, Warp and Spot presentation changes are in [ContentView.swift](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/PhotoStudio/ContentView.swift). Crop, Rotate, and light/color styling are in [Adjustments.swift](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/PhotoStudio/Adjustments.swift), with explicit photo-only opt-ins (`photoCropStyle`, `photoRotateStyle`, `photoColorStyle`) at the `AdjustPanel` call in `ContentView.swift`. Home was implemented separately in [HomeView.swift](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/PhotoStudio/HomeView.swift), preserving the WelcomeView and AboutView definitions. The shared video panel keeps its original presentation. These presentation changes preserve effect rendering, per-face storage, canvas gestures, camera and video-editor behavior. Retouch still uses the original three `sliderRow` calls in app code.
@@ -400,6 +403,20 @@ Native implementation, device layout, Dynamic Type, VoiceOver and real detection
 
 Private source: `design/mockups/yumiro-heal-selection-options-local.html`; standalone editor preview: `design/mockups/yumiro-heal-selection-editor-local.html`. Both embed the supplied portrait and stay ignored by Git. The source is a OneDrive reparse-point file, which failed direct inline reads. The original review used a byte-identical regular-file copy at `C:/Users/Jason/.codex/visualizations/2026/10/26/01a17641-5db9-7dc0-83c2-92b672843381/yumiro-heal-selection-options-local.html`. For another chat, copy into its own allowed visualization cache; keep the worktree file as the editable source. Do not force-add photo previews or QA screenshots.
 
+## Background → Remove: selected Labeled swatches
+
+The user chose **Labeled swatches** in writing. Preview tiles remains an unselected alternative. The selected implementation changes only Remove's picker and guidance in `ContentView.swift`.
+
+- Keep Off / Clear / White / Black in their original order. Each equal-width button has a minimum 68 pt height, a 36 pt swatch within a 44 pt slot, a footnote label and 14 pt corners. Selection uses the existing 12% accent backing, semibold accent label, an outer ring and a separate check. Neutral borders keep White and Black visible in either appearance. Reuse the existing pressed/disabled button treatment.
+- Clear uses neutral checkerboard squares in its swatch. The real canvas checkerboard and true-alpha PNG export remain unchanged. The separate note reads “Clear saves a transparent PNG.” Off keeps the existing Blur setting; White and Black keep their current filled export behavior.
+- Detecting shows a small progress indicator and “Detecting people…” without disabling the choices or Save. Ready says “Ready. Everyone found is kept.” No-person-found says “No person found. Use Brush to paint what to keep.” Refine remains available once a matte exists, including a matte with no detected person. Brush/Erase retain their original correction guidance and controls.
+- The review mockups reserve 224 pt for the Remove panel and 409 pt for the canvas in a 390×844 phone. These are browser reference sizes. Native layout retains the existing 184 pt minimum and allows content/Dynamic Type to increase its height; no fixed native panel or canvas height was introduced.
+- Blur's Strength control, Refine picker, Brush size/Reset, segmentation, edge refinement, rendering, export and undo/redo are preserved. The picker still calls `setBackground` directly, keeping one undo step per changed choice. First opening Remove still selects Clear automatically.
+
+The previous review passed 48 browser combinations across both alternatives, four choices, three detection states and light/dark. The final preview also passed 12 narrow-width layout/state checks. These checks cover the mockup, whose cutout is illustrative. Native compilation, Dynamic Type, VoiceOver, actual segmentation and export/history checks still require Xcode and a device/simulator.
+
+No separate approved Blur redesign was found in the other chats or this worktree. This design uses ui-a's current Blur/Refine controls and approved shared editor styling. Research and the implementation contract: [remove-background-proposals.md](design/remove-background-proposals.md). Private ignored preview: `design/mockups/yumiro-remove-background-options-local.html`.
+
 ## Retouch: preferred proposal, not implemented
 
 The user prefers **Compact rows**, then requested two spacing corrections. The latest revision has been shown but has not received explicit final acceptance. Do not implement or push Retouch UI merely because Compact rows is the carousel's selected preview.
@@ -449,6 +466,7 @@ Portable copies are saved in `design/mockups/`. These are interactive HTML fragm
 | [yumiro-warp-panel-local.html](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/design/mockups/yumiro-warp-panel-local.html) | Stacked sliders / Focused slider | Stacked explicitly selected and implemented; Focused remains an alternative; private and ignored |
 | [yumiro-heal-spot-options-local.html](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/design/mockups/yumiro-heal-spot-options-local.html) | Face-style slider, Reset below value | Approved and implemented in `d7c7184`; private and ignored |
 | [yumiro-heal-selection-options-local.html](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/design/mockups/yumiro-heal-selection-options-local.html) | Compact actions, stable photo across all Heal tabs | Selected design only; all five selection states in light/dark; private and ignored |
+| [yumiro-remove-background-options-local.html](C:/Users/Jason/OneDrive/Desktop/Code/js/yumiro-ui-a/design/mockups/yumiro-remove-background-options-local.html) | Labeled swatches / Preview tiles | Labeled swatches selected and implemented; native validation pending; private and ignored |
 
 Absolute portable-copy directory on this PC:
 

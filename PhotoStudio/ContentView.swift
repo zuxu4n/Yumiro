@@ -686,14 +686,7 @@ struct ContentView: View {
                     sliderRow("Strength", value: $model.blur)
                         .disabled(model.background != .off)
                 } else {
-                    HStack(spacing: Space.s) {
-                        ForEach(BackgroundChoice.allCases) { c in
-                            Chip(title: c.rawValue, on: model.background == c) { model.setBackground(c) }
-                        }
-                        Spacer(minLength: 0)
-                    }
-                    .frame(height: 44)
-                    .disabled(model.busy != nil)
+                    removeBackgroundChoices
                 }
                 HStack(spacing: Space.s) {
                     Text("Refine").font(.subheadline).foregroundStyle(.secondary)
@@ -707,7 +700,11 @@ struct ContentView: View {
                             .disabled(model.blurEdits.isEmpty || model.busy != nil)
                     }
                 }
-                HintText(blurCaption)
+                if model.blurPanel == .remove {
+                    removeBackgroundGuidance
+                } else {
+                    HintText(blurCaption)
+                }
             case .heal:
                 if model.healMode == .spot {
                     healSpotPanel
@@ -1218,6 +1215,142 @@ struct ContentView: View {
         if model.faceCount == 0 { return "No face found in this photo" }
         if model.faceCount == 1 { return "Colour only; the face's shape stays" }
         return "Face \((model.selectedFace ?? 0) + 1) of \(model.faceCount) · tap another face to switch"
+    }
+
+    /// Labeled swatches change only Remove's presentation; the model keeps its existing undo boundary.
+    private var removeBackgroundChoices: some View {
+        HStack(spacing: Space.s) {
+            ForEach(BackgroundChoice.allCases) { choice in
+                removeBackgroundChoice(choice)
+            }
+        }
+        .disabled(model.busy != nil)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Background options")
+    }
+
+    private func removeBackgroundChoice(_ choice: BackgroundChoice) -> some View {
+        let selected = model.background == choice
+
+        return Button { model.setBackground(choice) } label: {
+            VStack(spacing: Space.xs) {
+                ZStack {
+                    backgroundSwatch(choice)
+                        .frame(width: 36, height: 36)
+                        .clipShape(Circle())
+                        .overlay {
+                            Circle().stroke(Color(.separator), lineWidth: 1)
+                        }
+                        .overlay {
+                            if selected {
+                                Circle().stroke(Color.accentColor, lineWidth: 2)
+                                    .padding(-3)
+                            }
+                        }
+                }
+                .frame(width: 44, height: 44)
+                .accessibilityHidden(true)
+
+                Text(choice.rawValue)
+                    .font(.footnote.weight(selected ? .semibold : .regular))
+                    .lineLimit(1)
+            }
+            .foregroundStyle(selected ? Color.accentColor : Color.secondary)
+            .frame(maxWidth: .infinity, minHeight: 68)
+            .background {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(Color.accentColor.opacity(selected ? 0.12 : 0))
+            }
+            .overlay(alignment: .topTrailing) {
+                if selected {
+                    Circle().fill(Color.accentColor)
+                        .overlay {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundStyle(.white)
+                        }
+                        .overlay { Circle().stroke(Color(.systemBackground), lineWidth: 2) }
+                        .frame(width: 16, height: 16)
+                        .padding(.trailing, Space.s)
+                        .accessibilityHidden(true)
+                }
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(FaceNavigationButtonStyle())
+        .accessibilityLabel(choice.rawValue)
+        .accessibilityHint(backgroundChoiceHint(choice))
+        .accessibilityAddTraits(selected ? .isSelected : [])
+    }
+
+    @ViewBuilder private func backgroundSwatch(_ choice: BackgroundChoice) -> some View {
+        switch choice {
+        case .off:
+            Color(.secondarySystemBackground)
+                .overlay {
+                    Image(systemName: "nosign")
+                        .font(.system(size: 18))
+                        .foregroundStyle(.secondary)
+                }
+        case .clear:
+            // The canvas uses these same neutral squares in both appearances; they are not saved into the PNG.
+            Canvas { context, size in
+                let square: CGFloat = 6
+                context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(Color(white: 0.94)))
+                for row in 0..<Int(ceil(size.height / square)) {
+                    for column in 0..<Int(ceil(size.width / square)) where (row + column).isMultiple(of: 2) {
+                        let rect = CGRect(x: CGFloat(column) * square, y: CGFloat(row) * square,
+                                          width: square, height: square)
+                        context.fill(Path(rect), with: .color(Color(white: 0.78)))
+                    }
+                }
+            }
+        case .white:
+            Color.white
+        case .black:
+            Color.black
+        }
+    }
+
+    private func backgroundChoiceHint(_ choice: BackgroundChoice) -> String {
+        switch choice {
+        case .off: return "Turns off background removal and keeps your Blur setting."
+        case .clear: return "Checkerboard squares preview transparency. Saves a transparent PNG."
+        case .white: return "Saves with a white background."
+        case .black: return "Saves with a black background."
+        }
+    }
+
+    /// Keep detection feedback separate from the export note so Clear never hides the current state.
+    private var removeBackgroundGuidance: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(alignment: .top, spacing: Space.xs) {
+                if model.findingPeople {
+                    ProgressView().controlSize(.mini)
+                        .accessibilityHidden(true)
+                }
+                Text(removeBackgroundCaption)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Text(model.background == .clear ? "Clear saves a transparent PNG." :
+                 model.background == .off ? "Your Blur setting is kept." :
+                 "Saves with a \(model.background.rawValue.lowercased()) background.")
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .font(.footnote)
+        .foregroundStyle(.secondary)
+        .frame(maxWidth: .infinity, minHeight: 44, alignment: .topLeading)
+    }
+
+    private var removeBackgroundCaption: String {
+        guard let matte = model.personMatte else {
+            return model.findingPeople ? "Detecting people…" : "People haven't been detected yet."
+        }
+        // Keep the existing Brush/Erase guidance while correcting the mask.
+        if model.blurMode.paints { return blurCaption }
+        if !matte.hasPerson { return "No person found. Use Brush to paint what to keep." }
+        if model.background == .off { return "Background removal is off." }
+        return "Ready. Everyone found is kept."
     }
 
     private var blurCaption: String {
