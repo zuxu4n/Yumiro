@@ -1,6 +1,6 @@
 # Yumiro design A handoff
 
-Updated 2026-10-26 (America/Toronto). This is the design A source of truth for approved colors, typography, spacing, component states, references, and implementation boundaries. Home uses **Quick start** in **2dfc24e**, with Edit a Photo primary. The approved Nose Direction words design was pushed in **de9803a**. All eight Face categories and 34 subtabs reuse that design through shared controls in **c6b33b9**, with Position retaining its canvas oval. Warp uses **Stacked sliders** in **08f498b**, and Heal → Spot uses Face-style controls with Reset below the value in **d7c7184**. The user selected **Compact actions** for Heal → People, Brush and Erase, with a stable photo size across all four Heal tabs; its design spec was pushed in **ca7c7dd**, but the app UI is not implemented. Retouch remains a proposal. Browser/source checks are recorded below; native build and device validation remain unfinished. Read this document before continuing design A.
+Updated 2026-10-27 (America/Toronto). This is the design A source of truth for approved colors, typography, spacing, component states, references, and implementation boundaries. Home uses **Quick start** in **2dfc24e**, with Edit a Photo primary. The approved Nose Direction words design was pushed in **de9803a**. All eight Face categories and 34 subtabs reuse that design through shared controls in **c6b33b9**, with Position retaining its canvas oval. Warp uses **Stacked sliders** in **08f498b**, and Heal → Spot uses Face-style controls with Reset below the value in **d7c7184**. The user selected **Compact actions** for Heal → People, Brush and Erase, with a stable photo size across all four Heal tabs; its design spec was pushed in **ca7c7dd**, but the app UI is not implemented. Retouch remains a proposal. Browser/source checks are recorded below; native build and device validation remain unfinished. Read this document before continuing design A.
 
 ## Worktree, branch, and authorization
 
@@ -29,6 +29,8 @@ The script fetches/pulls `ui-a` and installs a separate app named **Yumiro A**, 
 ## Implementation status
 
 Implemented components and selected designs are listed separately by status below. The latest implemented Heal update is Spot with Face-style controls and Reset below the value. The selected People/Brush/Erase Compact actions design and stable canvas remain mockup-only, as requested. No Retouch redesign is implemented. Every implemented component still needs native validation on the Mac/device.
+
+The 2026-10-27 source review confirmed that `ContentView` still routes Spot to `healSpotPanel`, Warp to `warpPanel`, and People/Brush/Erase to their original controls. The editor still uses a 184 pt minimum tool panel; the proposed common 250 pt Heal allocation is not in app code. `HomeView` retains Quick start and all existing entry callbacks. This refresh changes documentation only.
 
 | Area | Approved direction | UI commit | Status |
 |---|---|---|---|
@@ -119,6 +121,12 @@ Existing `Space` constants: `xs = 4`, `s = 8`, `m = 12`, `l = 16`, `xl = 24`, `x
 - Face navigation: two 44 pt rows; each visible backing is 32 pt high with 14 pt corners, 12 pt horizontal label padding and 4 pt item gaps. Minimum category/option widths are 54/58 pt. Overflow fades are 16 pt wide and appear only at edges where content continues.
 - Eyes controls: a 44 pt slider/value/reset row, then a 4 pt gap before the minimum 28 pt endpoint/Reset all footer. Value badge is 44 × 32 pt with 10 pt corners; selected Reset is 44 × 44 pt with 14 pt corners. Footer reserves 104 pt for the badge/reset columns and two 8 pt gaps so endpoint words align with the slider.
 - Every Face category uses 8 pt top / 12 pt bottom padding, retaining 16 pt horizontal insets. Two 44 pt rails + 44 pt controls + 4 pt gap + 28 pt footer + 20 pt padding = the intended 184 pt minimum. Shared `FaceControlLayout` owns the row, value-badge and footer dimensions, now also reused by Warp and Spot. Warp uses the same insets; Spot retains Heal's 12 pt vertical padding. Native text or multi-face context may increase height.
+
+### Shared adjustment controls
+
+- `ValueSlider` in `Adjustments.swift` remains the common native slider. `adjustmentValueBadge`, `adjustmentResetControl` and `FaceControlLayout` in `ContentView.swift` supply the approved badge, reset style and dimensions for Face, Warp and Heal Spot. Continue reusing these parts when implementing an approved component.
+- Preserve each panel's placement: Face and Warp put Reset beside the value; Spot puts it below the value. Position retains its special canvas oval and two-axis reset without a numeric badge.
+- Sharing presentation does not share reset behavior. Face sliders reset to zero within the existing image undo boundary. Warp brush settings reset to 0.22/1 (display 33/100), and Spot brush size resets to 0.025 (display 28), without an image undo step. Warp's Reset Face remains a separate selected-face image operation. Keep each control's existing thresholds and availability checks rather than deriving them from rounded badge text or adding a blanket no-face lock.
 
 ### Selected, changed, and unavailable states
 
@@ -560,8 +568,8 @@ These references inform layout details; they do not authorize importing applicat
 
 Completed:
 
-- This 2026-10-26 handoff refresh began with `git pull --ff-only origin ui-a`: already up to date at `54e535c`, with a clean worktree. The refresh changes only `DESIGN.md`; validation below records earlier implementation and mockup checks, not new native tests.
-- The refresh passed `git diff --check`; all 38 unique local Markdown link targets exist, and the updated local renderer path exists. No app runtime tests were run for this documentation-only change.
+- This 2026-10-27 handoff refresh began with `git pull --ff-only origin ui-a`: already up to date at `621073e`, with a clean worktree. That hash is the refresh base, not the later documentation commit. Source inspection confirmed the Home, Warp and Spot implementations and the still-original People/Brush/Erase branches. The refresh changes only `DESIGN.md`; implementation and mockup checks below are historical, not new native results.
+- The refresh passed `git diff --check` and local Markdown-link checks. The local renderer path exists. No app runtime tests, new browser QA, native build or device validation were run for this documentation-only change.
 - Home (`2dfc24e`) passed the source-scope and browser checks recorded in `design/home-screen-proposals.md`: three small-phone sizes, both appearances and default/enlarged text. WelcomeView/AboutView preservation and existing routes were checked in source. Spot (`d7c7184`) passed the final 12 Reset-below-value combinations and brush-reset checks recorded in `design/heal-spot-proposals.md`; source comparison preserved other Heal branches and the rest of the editor.
 - Heal selection's final Compact actions mockup passed 120 tab/state/appearance/size combinations, plus direct tab-click checks confirming identical photo bounds. Clear, Reset, busy feedback and retained-selection presentation were also checked during design review. The spec was pushed to `origin/ui-a` as `ca7c7dd`; photo mockups remained local, and no application code was included. These are mockup checks, not native results.
 - `git diff --check` and the staged whitespace check passed for the Face navigation (`dd97cc7`) and Eyes (`709b132`) implementations. Their pushes were confirmed. At the historical Eyes checkpoint, local `ui-a` and `origin/ui-a` both resolved to `709b132f5323b31108ee09eff7b896b88d342823`, with a clean worktree; this is not the current branch tip.
